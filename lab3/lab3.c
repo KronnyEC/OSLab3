@@ -6,7 +6,7 @@
 #include <algorithm>
 using namespace std;
 
-struct scheduler {
+struct process {
  int P_ID;
  int burst;
  int arrival;
@@ -21,16 +21,19 @@ struct scheduler {
 
 
 
-std::istream& operator>>(std::istream& is, scheduler& s)
+std::istream& operator>>(std::istream& is, process& s)
 {
  is >> s.P_ID >> s.burst >> s.arrival >> s.priority >> s.deadline >> s.i_o;
  return is;
 
 }
 
-std::ostream& operator<<(std::ostream& os, scheduler& s)
+std::ostream& operator<<(std::ostream& os, process& s)
 {
- os << "P_ID: " << s.P_ID << "\nBurst: " << s.burst << "\nArrival: " << s.arrival << "\nPriority: " << s.priority << "\nDeadline :" << s.deadline << "\nI_O: " << s.i_o << "\n";
+ //os << "P_ID: " << s.P_ID << "\nBurst: " << s.burst << "\nArrival: " << s.arrival << "\nPriority: " << s.priority << "\nDeadline :" << s.deadline << "\nI_O: " << s.i_o << "\n";
+
+
+ os << s.P_ID << "\t" << s.burst << "\t" << s.arrival << "\t" << s.priority << "\t" << s.deadline << "\t" << s.i_o << "\n";
 
 return os;
 
@@ -38,16 +41,17 @@ return os;
 }
 
 
-void Load(std::vector<scheduler>& r, std::string fileName)
+void Load(std::vector<process>& r, std::string fileName)
 {
 	std::ifstream ifs(fileName.c_str());
 	//if there are headers dump the firstline
         string dumpline;
         getline(ifs, dumpline);
-
+        
+        cout << dumpline;
         for (std::string line; getline(ifs, line);){
         
-			scheduler temp;
+			process temp;
 			ifs >> temp;
 			r.push_back(temp);
         }
@@ -55,33 +59,27 @@ void Load(std::vector<scheduler>& r, std::string fileName)
 }
 
 
-void Read(std::vector<scheduler>& r){
+void Read(std::vector<process>& r){
 
 	for(unsigned int i=0; i < r.size(); i++){
-		//std::cout << r[i] << "\n";
+		std::cout << r[i] << "\n";
 	
 	}
 
 }
 
-bool sortByArrival(scheduler lhs, scheduler rhs){return lhs.arrival < rhs.arrival; }
+bool sortByBurst(process lhs, process rhs){return lhs.burst < rhs.burst; }
 
-bool sortByDeadline(scheduler lhs, scheduler rhs){return lhs.deadline < rhs.deadline; }
+bool sortByArrival(process lhs, process rhs){return lhs.arrival > rhs.arrival; }
 
-bool lessThanZero(scheduler s){
-	if (s.arrival<0){
+bool sortByDeadline(process lhs, process rhs){return lhs.deadline < rhs.deadline; }
+
+bool lessThanZero(process s){
+	if (s.arrival <0 || s.burst <0){
          return true;
         } else {
          return false;
         }
-}
-
-bool lessThanZeroBurst(scheduler s){
-	if(s.burst<0){
-	  return true;
-	}else {
-	 return false;
-	}
 }
 
 void MFQS(string fileName){
@@ -96,37 +94,71 @@ void MFQS(string fileName){
  
  int timeQuantum;
  std::cout << "Enter the time quantum:\n";
- cin >> timeQuantum;
- 
- 
+ cin >> timeQuantum; 
  
  int totalTime = 0; //calculate the totalTime based on all burstTimes  
 
   
- std::vector<scheduler> schedule;
+ std::vector<process> schedule;
  Load(schedule, fileName);
  Read(schedule);
  
  int i =0; 
- vector<scheduler>::iterator it;
+ 
+ for(int n=0;n<schedule.size();n++){
+    //cout << schedule[n].arrival << "\n";
+
+ }
+
+ cout << "---------\n";
+ cout << "Arrival Time \n";
+ //Sort by Arrival Time
+ sort(schedule.begin(), schedule.end(), sortByArrival);
+ for (int n=0;n<schedule.size();n++){
+  cout << schedule[n].arrival << "\n";
+
+
+ }
+
+
+ //Read(schedule);
+ for (int n=0;n<schedule.size();n++){
+   if (schedule[n].arrival < 0){
+    cout << schedule[n].arrival << "\n";
+   }
+ }
+ 
+ //Sort Burst for testing
+ // sort(schedule.begin(), schedule.end(), sortByBurst);  
+ //Read(schedule);
+ /*
+ for (int n=0;n<schedule.size();n++){
+   if (schedule[n].burst < 0){
+     cout << schedule[n].burst << "\n";
+   }
+ }*/
+
+ 
+ vector<process>::iterator it;
  for(it=schedule.begin(); it <schedule.end(); it++){
   totalTime += schedule[i].burst;	
   i++;
  }
  
- //Sort by Arrival Time
- sort(schedule.begin(), schedule.end(), sortByArrival);
- for (scheduler &n : schedule){
-   if (n.arrival < 0){
-    cout << n.arrival << "\n";
-   }
- }
- 
+ cout << "Total Burst Time " << totalTime << "\n"; 
  cout << "Number of Processes Before Removal " << schedule.size() << "\n"; 
  //Remove all Arrival Times that are less than 0
  schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessThanZero),schedule.end()); 
+ cout << "Number of Process After Removal " << schedule.size() << "\n";
  
-
+ totalTime = 0; 
+ for(i =0; i<schedule.size();i++){
+  totalTime += schedule[i].burst;	
+  i++;
+ }
+ 
+ cout << "TotalTime : " << totalTime << "\n"; 
+ 
  //set values at wt,rt, and finished to 0
  for(int l=0; l < schedule.size(); l++){
     schedule[l].wt=0;
@@ -141,8 +173,7 @@ void MFQS(string fileName){
  int remainingTime = 0; 
  int remainingProcess = 0;
  int numProcess = schedule.size();
- cout << "Number of Processes " << numProcess << "\n"; 
- cout << "TotalTime : " << totalTime << "\n"; 
+ //cout << "Number of Processes " << numProcess << "\n"; 
  cout << "TimeQuantum : " << timeQuantum << "\n";
  remainingProcess = numProcess;
  int timeRan = 0;
@@ -170,7 +201,7 @@ void MFQS(string fileName){
   
    count++;
    cout << "Count is : " << count << "\n";
-
+   break;
 }
 
 /*  
@@ -243,7 +274,7 @@ int main(){
  string fileName;
  int i;
  
- //User Interface for schedulers 
+ //User Interface for processs 
  cout << "Please enter the number to implement a scheduling algorithm \n";
  cout << "1: Multi-level Feedback Queue Scheduler (MFQS\n";
  cout << "2: Real-Time Scheduler (RTS)\n";
