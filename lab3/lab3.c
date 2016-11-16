@@ -95,7 +95,7 @@ void MFQS(string fileName){
   std::cout << "Enter the time quantum:\n";
   cin >> timeQuantum; 
 
-  int totalTime = 0; //calculate the totalTime based on all burstTimes  
+  //int totalTime = 0; //calculate the totalTime based on all burstTimes  
 
 
   std::vector<process> schedule;
@@ -103,10 +103,10 @@ void MFQS(string fileName){
 
   int i =0; 
 
-  for(int n=0;n<schedule.size();n++){
+ // for(int n=0;n<schedule.size();n++){
     //cout << schedule[n].arrival << "\n";
 
-  }
+  //}
 
   cout << "---------\n";
   //Sort
@@ -138,22 +138,24 @@ void MFQS(string fileName){
      }*/
 
 
-  vector<process>::iterator it;
+  /*vector<process>::iterator it;
   for(it=schedule.begin(); it <schedule.end(); it++){
     totalTime += schedule[i].burst;	
     i++;
-  }
+  }*/
 
-  cout << "Total Burst Time " << totalTime << "\n"; 
+  //cout << "Total Burst Time " << totalTime << "\n"; 
   cout << "Number of Processes Before Removal " << schedule.size() << "\n"; 
   //Remove all Arrival Times that are less than 0
   schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessThanZero),schedule.end()); 
   cout << "Number of Process After Removal " << schedule.size() << "\n";
 
-  totalTime = 0; 
+  int totalTime = 0; 
   for(i =0; i<schedule.size();i++){
+    cout << "Burst at : " << i << " " << schedule[i].burst << "\n"; 
     totalTime += schedule[i].burst;	
-    i++;
+    cout << "Total Time : " << totalTime << "\n";
+    
   }
 
   cout << "TotalTime : " << totalTime << "\n"; 
