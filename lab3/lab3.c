@@ -17,9 +17,8 @@ struct process {
   int wt;
   int finished;
   int time;
+  int cameIn;
 };
-
-
 
 std::istream& operator>>(std::istream& is, process& s)
 {
@@ -94,167 +93,127 @@ void MFQS(string fileName){
   int timeQuantum;
   std::cout << "Enter the time quantum:\n";
   cin >> timeQuantum; 
+  
+  int aging;
+  std::cout << "Enter the aging amount :\n";
+  cin >> aging; 
 
-  //int totalTime = 0; //calculate the totalTime based on all burstTimes  
-
-
+  //Setup Vector of processes 
   std::vector<process> schedule;
   Load(schedule, fileName);
 
   int i =0; 
 
- // for(int n=0;n<schedule.size();n++){
-    //cout << schedule[n].arrival << "\n";
-
-  //}
 
   cout << "---------\n";
   //Sort
   sort(schedule.begin(), schedule.end(), sortByPriority);
   sort(schedule.begin(), schedule.end(), sortByArrival);
-  //for (int n=0;n<schedule.size();n++){
-  //  cout << schedule[n].arrival << "\n";
-  //}
-  Read(schedule);
+ // Read(schedule);
 
-  /*
-
-  Read(schedule);
-  for (int n=0;n<schedule.size();n++){
-    if (schedule[n].arrival < 0){
-      cout << schedule[n].arrival << "\n";
-    }
-  }
-  */
-
-  //Sort Burst for testing
-  // sort(schedule.begin(), schedule.end(), sortByBurst);  
-  //Read(schedule);
-  /*
-     for (int n=0;n<schedule.size();n++){
-     if (schedule[n].burst < 0){
-     cout << schedule[n].burst << "\n";
-     }
-     }*/
-
-
-  /*vector<process>::iterator it;
-  for(it=schedule.begin(); it <schedule.end(); it++){
-    totalTime += schedule[i].burst;	
-    i++;
-  }*/
-
-  //cout << "Total Burst Time " << totalTime << "\n"; 
-  cout << "Number of Processes Before Removal " << schedule.size() << "\n"; 
-  //Remove all Arrival Times that are less than 0
+   
+  //cout << "Number of Processes Before Removal " << schedule.size() << "\n"; 
+  //Remove all Arrival and Burst Times that are less than 0
   schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessThanZero),schedule.end()); 
   cout << "Number of Process After Removal " << schedule.size() << "\n";
-
+  
+  //Setup the total amount of time based valid Burst and Arrived Times 
   int totalTime = 0; 
-  for(i =0; i<schedule.size();i++){
-    cout << "Burst at : " << i << " " << schedule[i].burst << "\n"; 
-    totalTime += schedule[i].burst;	
-    cout << "Total Time : " << totalTime << "\n";
-    
-  }
-
-  cout << "TotalTime : " << totalTime << "\n"; 
 
   //set values at wt,rt, and finished to 0
   for(int l=0; l < schedule.size(); l++){
     schedule[l].wt=0;
-
-    schedule[l].rt=0;
-
+    totalTime+=schedule[l].burst;
+    schedule[l].rt=schedule[l].burst;
     schedule[l].finished=0;
-    schedule[l].time = schedule[l].burst;   
   }
 
   int time, flag, dec, j, count = 0;
   int remainingTime = 0; 
   int remainingProcess = 0;
   int numProcess = schedule.size();
-  //cout << "Number of Processes " << numProcess << "\n"; 
-  cout << "TimeQuantum : " << timeQuantum << "\n";
+  cout << "Number of Processes " << numProcess << "\n"; 
+  //cout << "TimeQuantum : " << timeQuantum << "\n";
   remainingProcess = numProcess;
   int timeRan = 0;
   int t =0;
 
-  // cout << "Total number of processes scheduled " << schedule.end().P_ID;
+   //cout << "Total number of processes scheduled " << schedule.end->P_ID;
   // cout << "Total Time = " << totalTime << "\n";
+  int elapsedTime = 0; 
+  flag=1;
+  i =0;
 
+  //Process the following
+   
+  //cout << "Pid:\tBst:\tArr:\tPri:\tDline:\tI/O:\t\n";
+  for(int i=0; i < schedule.size()-1; i++){
+    std::cout << schedule[i].P_ID << "\n";
 
-
-  while(numProcess!=0){
-    cout << "Here";  
-
-    if (schedule[count].time > timeQuantum){
-      schedule[count].rt = schedule[count].burst - timeQuantum;
-      schedule[count].time = schedule[count].burst - timeQuantum; 
-
-    } else {
-
-      schedule[count].finished = 1;
-      numProcess-=1;
-
-    }
-
-
-    count++;
-    cout << "Count is : " << count << "\n";
-    break;
   }
 
-  /*  
-      for(time=0,count=0;remainingProcess!=0;){
-// cout << "Time is \n" << count;
-if(schedule[count].rt <= timeQuantum && schedule[count].rt>0){
-time+=schedule[count].rt;
-schedule[count].rt=0;
-flag = 1; 
-} else if(schedule[count].rt > 0) { 
-schedule[count].rt-=timeQuantum;
-//cout << schedule[count].rt << "\n";     
-time+= timeQuantum;
-//cout << time << "\n";
-}
-
-if (schedule[count].rt==0 && flag==1){
-remainingProcess--;
-cout << "Finished";
-cout << "Process: " << schedule[count].P_ID << "\n";
-cout << "Wait Time : " << time - schedule[count].arrival << "\n";
-cout << "---------------------" << "\n"; 
-flag=0; 
-}
-
-if(count==numProcess-1){
-count=0;
-cout << numProcess-1 << "\n";
-} else if(schedule[count+1].arrival<=time) {
-count++;
-//cout << "Made it here : " << schedule[count+1].arrival << "\n"; 
-break;
-}
 
 
-cout << "Made it here : " << schedule[count+1].arrival << "\n"; 
+  
+    //cout << "Here";  
+    cout << totalTime << "\n";    
+    for(time=0;time<totalTime;){ 
+     for(i=0;i<numProcess;i++)
+     { 
+      if(schedule[i].arrival <= time && schedule[i].finished==0){
+        cout<<"("<<time<<")|==P"<<schedule[i].P_ID<<"==|";
+        if(schedule[i].rt<timeQuantum){
+           dec=schedule[i].rt;
+          // cout << "dec " << schedule[i].rt << "\n";     
+        } else {dec=timeQuantum;}
+
+        schedule[i].rt=schedule[i].rt-dec;
+        //cout << "Remaining " << schedule[i].rt << "\n";
+        if(schedule[i].rt==0) { 
+             schedule[i].finished=1;
+        }
+         time=time+dec;
+         cout << "Time " << time << "\n";
+      } 
+
+     }
+    
+    }
+  } 
+     /*
+
+     i=0;
+     flag=1;
+     timeQuantum = timeQuantum*2;	
+     
+     break;
+     cout << "Time Quantum "  << timeQuantum << "\n";
+     remainingProcess = numProcess;
+     //FCFS
+     if (que ==1){
+       break;       
+       }
+      if(i == remainingProcess){
+        flag = 0;
+        que--;
+      }
+     }
+     for (int i =0; i<7;i++){
+        cout << "Process : " << schedule[i].P_ID << " finished at " << schedule[i].time+schedule[i].arrival << " finished value " << schedule[i].finished << "\n";
+     }
+     
+    }
+   */     
+//DEBUG 
+/*cout << "Made it here : " << schedule[count+1].arrival << "\n"; 
 cout << "Time is : " << time << "\n";
 cout << "Count is : " << count << "\n";
 cout << "RemaingTime is : " << remainingProcess << "\n";
 cout << "Schedule at : " << schedule[count].arrival << "\n";
 cout << "Process at : " << schedule[count].P_ID << "\n";    
-
-t++;
-
-if (t ==10){
-break;
-}     
-
-}
 */
 
-}
+
 
 void RTS(string Filename){
   std::cout << "RTS";
