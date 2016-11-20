@@ -80,6 +80,16 @@ bool lessThanZero(process s){
   }
 }
 
+bool lessThanZeroDeadline(process s){
+ if (s.arrival <0 || s.burst < 0 || s.deadline <0){
+  return true;
+ } else {
+   return false;
+ }
+
+
+}
+
 void MFQS(string fileName){
   //Clear Screen
 
@@ -151,13 +161,9 @@ void MFQS(string fileName){
     std::cout << schedule[i].P_ID << "\n";
 
   }
-
-
-
-  
-    //cout << "Here";  
+    //TODO: Incorporate Aging Time, calculate waiting time and turnaround time, verify what happens if a process cannot finish? 
     cout << totalTime << "\n";    
-    for(time=0;time<totalTime;){ 
+    for(time=0;time<totalTime && que!=0;){ 
      for(i=0;i<numProcess;i++)
      { 
       if(schedule[i].arrival <= time && schedule[i].finished==0){
@@ -174,36 +180,42 @@ void MFQS(string fileName){
         }
          time=time+dec;
          cout << "Time " << time << "\n";
-      } 
-
+         cout << "Que is " << que << "\n";
+       } 
+        
      }
-    
-    }
-  } 
-     /*
+   
+     //que decreases after first iteration
+     que--;
+     cout << "Que now is " << que << "\n";    
+     //Time quantum doubles
+     timeQuantum = timeQuantum*2;
+     cout << "Time Quantum " << timeQuantum << "\n";     
 
-     i=0;
-     flag=1;
-     timeQuantum = timeQuantum*2;	
-     
-     break;
-     cout << "Time Quantum "  << timeQuantum << "\n";
-     remainingProcess = numProcess;
-     //FCFS
-     if (que ==1){
-       break;       
+     //FCFS 
+     if(que==1){
+     cout << "Time at FCFS que is " << time << "\n";
+      
+      for(i=0;i<numProcess;i++){
+       if(schedule[i].arrival <= time && schedule[i].finished==0){
+         if(schedule[i].rt<timeQuantum){
+           dec=schedule[i].rt;
+           cout << "Process that needs to finish is " << schedule[i].P_ID << "with process time of " << schedule[i].rt <<  "\n";
+         } else {dec=timeQuantum;}
+          
+         schedule[i].rt=schedule[i].rt-dec;
+         time=time+dec;
+         
+         cout << "Time " << time << "\n";
+         }
+         
+          
+        }
        }
-      if(i == remainingProcess){
-        flag = 0;
-        que--;
+      cout << "End of outer loop " << time << " " << totalTime << " " << " Que " << que << "\n";
       }
-     }
-     for (int i =0; i<7;i++){
-        cout << "Process : " << schedule[i].P_ID << " finished at " << schedule[i].time+schedule[i].arrival << " finished value " << schedule[i].finished << "\n";
-     }
-     
-    }
-   */     
+}
+   
 //DEBUG 
 /*cout << "Made it here : " << schedule[count+1].arrival << "\n"; 
 cout << "Time is : " << time << "\n";
@@ -214,13 +226,53 @@ cout << "Process at : " << schedule[count].P_ID << "\n";
 */
 
 
-
-void RTS(string Filename){
+//TODO:Algorithm is very slow need to recalculate
+void RTS(string fileName){
   std::cout << "RTS";
 
+  std::vector<process> schedule;
+  Load(schedule, fileName);
+ 
+  //sort via deadline 
 
+  //sort(schedule.begin(), schedule.end(), sortByDeadline);
+ 
+  //sort arrival time
+  sort(schedule.begin(), schedule.end(), sortByArrival);
 
+  //sort by deadline
+  //sort(schedule.begin(), schedule.end(), sortByDeadline);
+   
+  Read(schedule);
+ 
+   //Need to account for both soft and hard RT environments.
+  
+  //Remove all with burst, arrivals, and deadlines less than 0
+  schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessThanZeroDeadline),schedule.end()); 
+    
+  int numProcess = schedule.size();
+  cout << "Number of processes " << numProcess << "\n";
+  //Setup the total amount of time based valid Burst and Arrived Times 
+  int totalTime = 0; 
 
+  //set values at wt,rt, and finished to 0
+  for(int l=0; l < schedule.size(); l++){
+    schedule[l].wt=0;
+    totalTime+=schedule[l].burst;
+    schedule[l].rt=schedule[l].burst;
+    schedule[l].finished=0;
+  }
+       
+  for(int i=0;i<numProcess;i++){
+  	for(int j=i;j<numProcess;j++){
+          if(schedule[j+1].arrival == schedule[j].arrival){
+            if(schedule[j+1].deadline < schedule[j].deadline){
+              cout << schedule[j].P_ID << "\n";
+            }
+
+          }
+        }
+  }
 }
 
 void WHS(){
