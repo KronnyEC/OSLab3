@@ -119,8 +119,8 @@ void MFQS(string fileName){
 
   cout << "---------\n";
   //Sort
-  sort(schedule.begin(), schedule.end(), sortByPriority);
-  sort(schedule.begin(), schedule.end(), sortByArrival);
+  sort(schedule.begin(), schedule.end()-1, sortByPriority);
+  sort(schedule.begin(), schedule.end()-1, sortByArrival);
  // Read(schedule);
 
    
@@ -260,10 +260,10 @@ void RTS(string fileName){
   Load(schedule, fileName);
  
   //sort arrival time
-  sort(schedule.begin(), schedule.end(), sortByArrival);
+  sort(schedule.begin(), schedule.end()-1, sortByArrival);
 
   //sort by deadline
-  //sort(schedule.begin(), schedule.end(), sortByDeadline);
+  //sort(schedule.begin(), schedule.end()-1, sortByDeadline);
    
  
    //Need to account for both soft and hard RT environments.
