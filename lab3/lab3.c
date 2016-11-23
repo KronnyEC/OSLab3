@@ -18,6 +18,7 @@ struct process {
   int finished;
   int time;
   int cameIn;
+  int end;
 };
 
 std::istream& operator>>(std::istream& is, process& s)
@@ -167,7 +168,13 @@ void MFQS(string fileName){
      for(i=0;i<numProcess;i++)
      { 
       if(schedule[i].arrival <= time && schedule[i].finished==0){
-        cout<<"("<<time<<")|==P"<<schedule[i].P_ID<<"==|";
+        //cout<<"PID:"<<schedule[i].P_ID<< " -> " << time ;
+        if(flag !=0){
+          schedule[i].cameIn = time;
+          //cout << "PID: " << schedule[i].P_ID << " START: " << schedule[i].cameIn << "\n"; 
+        }
+          
+      
         if(schedule[i].rt<timeQuantum){
            dec=schedule[i].rt;
           // cout << "dec " << schedule[i].rt << "\n";     
@@ -177,54 +184,61 @@ void MFQS(string fileName){
         //cout << "Remaining " << schedule[i].rt << "\n";
         if(schedule[i].rt==0) { 
              schedule[i].finished=1;
+                 
+             //schedule[i].end = time;
+              //cout << "PID: " << schedule[i].P_ID << " END: " << schedule[i].end << "\n"; 
+             //cout << schedule[i].end << "\n";    
         }
          time=time+dec;
-         cout << "Time " << time << "\n";
-         cout << "Que is " << que << "\n";
+           
+         if(schedule[i].finished==1){
+
+           schedule[i].end = time;
+
+
+         }       
+         //cout << "PID: " << schedule[i].P_ID << " END: " << time << "\n"; 
+         //cout << "Time " << time << "\n";
+         //cout << "Que is " << que << "\n";
        } 
         
      }
-   
+     
      //que decreases after first iteration
      que--;
-     cout << "Que now is " << que << "\n";    
+     flag=0;
+     //cout << "Que now is " << que << "\n";    
      //Time quantum doubles
      timeQuantum = timeQuantum*2;
-     cout << "Time Quantum " << timeQuantum << "\n";     
+     //cout << "Time Quantum " << timeQuantum << "\n";     
 
      //FCFS 
      if(que==1){
-     cout << "Time at FCFS que is " << time << "\n";
+     //cout << "Time at FCFS que is " << time << "\n";
       
       for(i=0;i<numProcess;i++){
        if(schedule[i].arrival <= time && schedule[i].finished==0){
          if(schedule[i].rt<timeQuantum){
            dec=schedule[i].rt;
-           cout << "Process that needs to finish is " << schedule[i].P_ID << "with process time of " << schedule[i].rt <<  "\n";
+           //cout << "Process that needs to finish is " << schedule[i].P_ID << "with process time of " << schedule[i].rt <<  "\n";
          } else {dec=timeQuantum;}
           
-         schedule[i].rt=schedule[i].rt-dec;
+         //schedule[i].rt=schedule[i].rt-dec;
          time=time+dec;
          
-         cout << "Time " << time << "\n";
+         schedule[i].end = time;
+         //cout << "Time " << time << "\n";
          }
          
           
         }
        }
-      cout << "End of outer loop " << time << " " << totalTime << " " << " Que " << que << "\n";
       }
+  for(int i=0; i<numProcess;i++){
+     
+     cout << "PID: " << schedule[i].P_ID << " START: " << schedule[i].cameIn << " END: " << schedule[i].end << "\n"; 
+ }
 }
-   
-//DEBUG 
-/*cout << "Made it here : " << schedule[count+1].arrival << "\n"; 
-cout << "Time is : " << time << "\n";
-cout << "Count is : " << count << "\n";
-cout << "RemaingTime is : " << remainingProcess << "\n";
-cout << "Schedule at : " << schedule[count].arrival << "\n";
-cout << "Process at : " << schedule[count].P_ID << "\n";    
-*/
-
 
 //TODO:Algorithm is very slow need to recalculate
 void RTS(string fileName){
@@ -233,17 +247,12 @@ void RTS(string fileName){
   std::vector<process> schedule;
   Load(schedule, fileName);
  
-  //sort via deadline 
-
-  //sort(schedule.begin(), schedule.end(), sortByDeadline);
- 
   //sort arrival time
   sort(schedule.begin(), schedule.end(), sortByArrival);
 
   //sort by deadline
   //sort(schedule.begin(), schedule.end(), sortByDeadline);
    
-  Read(schedule);
  
    //Need to account for both soft and hard RT environments.
   
@@ -262,19 +271,22 @@ void RTS(string fileName){
     schedule[l].rt=schedule[l].burst;
     schedule[l].finished=0;
   }
-       
-  for(int i=0;i<numProcess;i++){
-  	for(int j=i;j<numProcess;j++){
-          if(schedule[j+1].arrival == schedule[j].arrival){
-            if(schedule[j+1].deadline < schedule[j].deadline){
-              cout << schedule[j].P_ID << "\n";
-            }
 
+  
+  for(int i=1;i<numProcess;i++){
+    int end = schedule[0].deadline;
+    if (schedule[i].arrival < end){
+       if (i != numProcess-1){
+          int j=i+1;
+          int min = i;
+          while(schedule[j].arrival<=end && j<numProcess){
+		break;
           }
-        }
-  }
-}
+	}
+    }
+ }
 
+}
 void WHS(){
   std::cout << "WHS";
 
