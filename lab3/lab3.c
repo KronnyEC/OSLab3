@@ -15,6 +15,7 @@ struct process {
   int i_o; 
   int rt;
   int wt;
+  int tt;
   int finished;
   int time;
   int cameIn;
@@ -234,10 +235,21 @@ void MFQS(string fileName){
         }
        }
       }
+  float avwt = 0;
+  float avtt = 0;
   for(int i=0; i<numProcess;i++){
      
      cout << "PID: " << schedule[i].P_ID << " START: " << schedule[i].cameIn << " END: " << schedule[i].end << "\n"; 
- }
+     schedule[i].wt = schedule[i].cameIn;
+     schedule[i].tt = schedule[i].wt + schedule[i].burst; 
+     avwt += schedule[i].wt;
+     avtt += schedule[i].tt;     
+  }
+  
+  avwt = avwt/numProcess;
+  avtt = avtt/numProcess;
+  cout << "Average Waiting Time " << avwt << " Average Turnaround Time " << avtt << "\n";
+    
 }
 
 //TODO:Algorithm is very slow need to recalculate
