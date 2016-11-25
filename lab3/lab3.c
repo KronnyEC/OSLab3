@@ -67,15 +67,15 @@ void Read(std::vector<process>& r){
 }
 
 bool sortByArrivalDeadline(process const &lhs, process const &rhs){
- if(lhs.arrival < rhs.arrival){
+ if(lhs.deadline < rhs.deadline){
   return true;
- } else if (rhs.arrival < lhs.arrival){
+ } else if (rhs.deadline < lhs.deadline){
    return false;
 
- } else { //arrival equals
-   if (lhs.deadline < rhs.deadline){
+ } else { //deadline equals
+   if (lhs.arrival < rhs.arrival){
     return true;
-   } else if (rhs.deadline < lhs.deadline){
+   } else if (rhs.arrival < lhs.arrival){
      return false;
    } else { //Arrival and Deadline Equal sort on priority
      return lhs.priority < rhs.priority;
