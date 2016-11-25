@@ -66,6 +66,25 @@ void Read(std::vector<process>& r){
   }
 }
 
+bool sortByArrivalDeadline(process const &lhs, process const &rhs){
+ if(lhs.arrival < rhs.arrival){
+  return true;
+ } else if (rhs.arrival < lhs.arrival){
+   return false;
+
+ } else { //arrival equals
+   if (lhs.deadline < rhs.deadline){
+    return true;
+   } else if (rhs.deadline < lhs.deadline){
+     return false;
+   } else { //Arrival and Deadline Equal sort on priority
+     return lhs.priority < rhs.priority;
+
+   }
+ }
+
+}
+
 bool sortByBurst(process lhs, process rhs){return lhs.burst < rhs.burst; }
 
 bool sortByPriority(process lhs, process rhs){return lhs.priority > rhs.priority; }
@@ -264,18 +283,21 @@ void RTS(string fileName){
   cout << "1. Hard RTS" << "\n";
   cout << "2. Soft RTS" << "\n";
   cin >> input;
-
+  
+  
   std::vector<process> schedule;
   Load(schedule, fileName);
  
   //sort arrival time
-  sort(schedule.begin(), schedule.end()-1, sortByArrival);
+  sort(schedule.begin(), schedule.end()-1, sortByArrivalDeadline);
   Read(schedule);
 
-
+  //TODO:Sorts based on Deadline 
   //sort by deadline
-  sort(schedule.begin(), schedule.end()-1, sortByDeadline);
-  Read(schedule); 
+  //sort(schedule.begin(), schedule.end()-1, sortByDeadline);
+  //Read(schedule); 
+  
+  
  
    //Need to account for both soft and hard RT environments.
   
@@ -295,6 +317,21 @@ void RTS(string fileName){
     schedule[l].finished=0;
   }
 
+  
+  //we can check preempty if it will fail if the arrival time is greater than the deadline time
+  if (input == 1){
+   for(int i=0; i<numProcess;i++){
+    if(schedule[i].arrival > schedule[i].deadline){
+     cout << "Process " << schedule[i].P_ID << " will not make the deadline. It will arrive at " << schedule[i].arrival << "but has a deadline of " << schedule[i].deadline << "\n"; 
+     break;
+    } 
+
+   }   
+
+  }
+
+
+  /*
   for(int i=0; i<numProcess;i++){
     for(int j=i;j<numProcess;j++){
       cout << "Process " << schedule[j].P_ID << "\n";
@@ -312,13 +349,14 @@ void RTS(string fileName){
     }
 
 
-  }
+  }*/
   
   float avwt = 0;
   float avtt = 0;
+  /*
   for(int i=0; i<numProcess;i++){
    cout << "Process Order" << schedule[i].P_ID << "\n";   
-  }
+  }*/
   
   avwt = avwt/numProcess;
   avtt = avtt/numProcess;
