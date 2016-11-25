@@ -143,7 +143,7 @@ void MFQS(string fileName){
   int time, flag, dec, j, count = 0;
   int remainingTime = 0; 
   int remainingProcess = 0;
-  int numProcess = schedule.size();
+  int numProcess = schedule.size() -1;
   cout << "Number of Processes " << numProcess << "\n"; 
   //cout << "TimeQuantum : " << timeQuantum << "\n";
   remainingProcess = numProcess;
@@ -163,11 +163,12 @@ void MFQS(string fileName){
     std::cout << schedule[i].P_ID << "\n";
 
   }
-    //TODO: Incorporate Aging Time, calculate waiting time and turnaround time, verify what happens if a process cannot finish? 
+    //TODO: Incorporate Aging Time, calculate waiting time and turnaround time, verify what happens if a process cannot finish? Doesn't work if arrival is not 0 
     cout << totalTime << "\n";    
     for(time=0;time<totalTime && que!=0;){ 
      for(i=0;i<numProcess;i++)
-     { 
+     {
+       
       if(schedule[i].arrival <= time && schedule[i].finished==0){
         //cout<<"PID:"<<schedule[i].P_ID<< " -> " << time ;
         if(flag !=0){
@@ -254,28 +255,38 @@ void MFQS(string fileName){
 
 //TODO:Algorithm is very slow need to recalculate
 void RTS(string fileName){
-  std::cout << "RTS";
+  std::cout << "RTS" << "\n";
+  cout << "---------------" << "\n";
+   int input;
+  
+  //Allow for Hard or Soft RTS
+  cout << "Please enter a number Hard or Soft RTS" << "\n";
+  cout << "1. Hard RTS" << "\n";
+  cout << "2. Soft RTS" << "\n";
+  cin >> input;
 
   std::vector<process> schedule;
   Load(schedule, fileName);
  
   //sort arrival time
   sort(schedule.begin(), schedule.end()-1, sortByArrival);
+  Read(schedule);
+
 
   //sort by deadline
-  //sort(schedule.begin(), schedule.end()-1, sortByDeadline);
-   
+  sort(schedule.begin(), schedule.end()-1, sortByDeadline);
+  Read(schedule); 
  
    //Need to account for both soft and hard RT environments.
   
   //Remove all with burst, arrivals, and deadlines less than 0
   schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessThanZeroDeadline),schedule.end()); 
     
-  int numProcess = schedule.size();
+  int numProcess = schedule.size()-1;
   cout << "Number of processes " << numProcess << "\n";
   //Setup the total amount of time based valid Burst and Arrived Times 
   int totalTime = 0; 
-
+  int temp;
   //set values at wt,rt, and finished to 0
   for(int l=0; l < schedule.size(); l++){
     schedule[l].wt=0;
@@ -284,19 +295,34 @@ void RTS(string fileName){
     schedule[l].finished=0;
   }
 
-  
-  for(int i=1;i<numProcess;i++){
-    int end = schedule[0].deadline;
-    if (schedule[i].arrival < end){
-       if (i != numProcess-1){
-          int j=i+1;
-          int min = i;
-          while(schedule[j].arrival<=end && j<numProcess){
-		break;
-          }
-	}
+  for(int i=0; i<numProcess;i++){
+    for(int j=i;j<numProcess;j++){
+      cout << "Process " << schedule[j].P_ID << "\n";
+      if(schedule[j+1].arrival == schedule[j].arrival){
+        temp=schedule[j+1].deadline;
+        schedule[j+1].deadline=schedule[j].deadline;
+        schedule[j].deadline=temp;
+        
+        temp=schedule[j+1].P_ID;
+        schedule[j+1].P_ID = schedule[j].P_ID; 
+        schedule[j].P_ID = temp;
+
+      }
+
     }
- }
+
+
+  }
+  
+  float avwt = 0;
+  float avtt = 0;
+  for(int i=0; i<numProcess;i++){
+   cout << "Process Order" << schedule[i].P_ID << "\n";   
+  }
+  
+  avwt = avwt/numProcess;
+  avtt = avtt/numProcess;
+  cout << "Average Waiting Time " << avwt << " Average Turnaround Time " << avtt << "\n";
 
 }
 void WHS(){
