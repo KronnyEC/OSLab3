@@ -114,6 +114,7 @@ bool lessThanZeroDeadline(process s){
 void MFQS(string fileName){
   //Clear Screen
 
+/************************** Get Input******************************************/
   cout << string(5, '\n');
   std::cout << "MFQS Scheduler\n";
   std::cout << "Please enter the number of ques\n";
@@ -136,6 +137,7 @@ void MFQS(string fileName){
   int i =0; 
 
 
+/************************** Initialize ****************************************/
   cout << "---------\n";
   //Sort
   sort(schedule.begin(), schedule.end()-1, sortByPriority);
@@ -175,13 +177,16 @@ void MFQS(string fileName){
   flag=1;
   i =0;
 
+/************************** Begin Simulation **********************************/
   //Process the following
    
   //cout << "Pid:\tBst:\tArr:\tPri:\tDline:\tI/O:\t\n";
+  /*
   for(int i=0; i < schedule.size()-1; i++){
     std::cout << schedule[i].P_ID << "\n";
 
   }
+  */
     //TODO: Incorporate Aging Time, calculate waiting time and turnaround time, verify what happens if a process cannot finish? Doesn't work if arrival is not 0 
     cout << totalTime << "\n";    
     for(time=0;time<totalTime && que!=0;){ 
@@ -274,32 +279,28 @@ void MFQS(string fileName){
 
 //TODO:Algorithm is very slow need to recalculate
 void RTS(string fileName){
+/************************** Get Input *****************************************/
   std::cout << "RTS" << "\n";
   cout << "---------------" << "\n";
-   int input;
+   int hard_or_soft;
   
   //Allow for Hard or Soft RTS
   cout << "Please enter a number Hard or Soft RTS" << "\n";
   cout << "1. Hard RTS" << "\n";
   cout << "2. Soft RTS" << "\n";
-  cin >> input;
+  cin >> hard_or_soft;
   
   
+/************************** Initialize ****************************************/
   std::vector<process> schedule;
   Load(schedule, fileName);
  
   //sort arrival time
   sort(schedule.begin(), schedule.end()-1, sortByArrivalDeadline);
+  sort(schedule.begin(), schedule.end()-1, sortByArrival);
   Read(schedule);
 
-  //TODO:Sorts based on Deadline 
-  //sort by deadline
-  //sort(schedule.begin(), schedule.end()-1, sortByDeadline);
-  //Read(schedule); 
-  
-  
- 
-   //Need to account for both soft and hard RT environments.
+  //Need to account for both soft and hard RT environments.
   
   //Remove all with burst, arrivals, and deadlines less than 0
   schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessThanZeroDeadline),schedule.end()); 
@@ -318,8 +319,9 @@ void RTS(string fileName){
   }
 
   
+/************************** Begin Simulation **********************************/
   //we can check preempty if it will fail if the arrival time is greater than the deadline time
-  if (input == 1){
+  if (hard_or_soft == 1){
    for(int i=0; i<numProcess;i++){
     if(schedule[i].arrival > schedule[i].deadline){
      cout << "Process " << schedule[i].P_ID << " will not make the deadline. It will arrive at " << schedule[i].arrival << "but has a deadline of " << schedule[i].deadline << "\n"; 
@@ -365,6 +367,12 @@ void RTS(string fileName){
 }
 void WHS(){
   std::cout << "WHS";
+
+/************************** Get Input *****************************************/
+  
+/************************** Initialize ****************************************/
+  
+/************************** Begin Simulation **********************************/
 
 }
 
