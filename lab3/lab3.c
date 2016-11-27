@@ -335,25 +335,31 @@ void RTS(string fileName){
   std::vector<process> queue;
   int tick = 0;
   int running = 1;
-  cout << schedule[0].arrival << "\n";
+  cout << "First item arrives at: " << schedule[0].arrival << "\n\n";
+  Read(schedule);
   while(running) {
     // check for new processes
     if (!schedule.empty() && schedule[0].arrival <= tick) {
-      cout << "here\n";
       queue.push_back(schedule[0]);
       schedule.erase(schedule.begin());
+      sort(queue.begin(), queue.end()-1, sortByDeadline);
     }
-    sort(queue.begin(), queue.end()-1, sortByDeadline);
     // do work
     if (!queue.empty()) {
       if (queue[0].burst + tick > queue[0].deadline) {
-        cout << "Process "<< queue[0].P_ID << " can not finish...\n";
-        queue.erase(queue.begin());
-        numProcess--;
+        if (hard_or_soft == 2) {
+          cout << "\033[1;31mFAILED: PID:\tR_BST:\tDL:\tCURR\033[0m\n";
+          cout << "\033[1;31m\t" << queue[0].P_ID << "\t" << queue[0].burst << "\t" << queue[0].deadline << "\t" << tick << "\033[0m\n";
+          queue.erase(queue.begin());
+          numProcess--;
+        } else {
+          cout << "\033[1;31mFAILED: ABORTING SCHEDULAR\033[0m\n";
+          return;
+        }
       } else {
         queue[0].burst--;
         if (queue[0].burst <= 0) {
-          cout << "Process " << queue[0].P_ID << " ended on tick " << tick+1 << "\n";
+          cout << "Ended at " << tick+1 << ": process " << queue[0].P_ID << "\n";
           queue.erase(queue.begin());
           numProcess--;
         }
@@ -370,8 +376,8 @@ void RTS(string fileName){
   avwt = avwt/totalProcess;
   avtt = avtt/totalProcess;
   cout << "Average Waiting Time " << avwt << " Average Turnaround Time " << avtt << "\n";
-
 }
+
 void WHS(string fileName){
   std::cout << "WHS";
 
@@ -383,9 +389,9 @@ void WHS(string fileName){
   int timeQuantum;
   cin >> timeQuantum;
 
-  
+
   /************************** Initialize ****************************************/
-    
+
   std::vector<process> schedule;
   Load(schedule, fileName);
 
@@ -410,7 +416,7 @@ void WHS(string fileName){
     schedule[l].rt=schedule[l].burst;
     schedule[l].finished=0;
   }
-   
+
   /************************** Begin Simulation **********************************/
 
 }
