@@ -372,13 +372,45 @@ void RTS(string fileName){
   cout << "Average Waiting Time " << avwt << " Average Turnaround Time " << avtt << "\n";
 
 }
-void WHS(){
+void WHS(string fileName){
   std::cout << "WHS";
 
   /************************** Get Input *****************************************/
+  cout << "Please enter the aging time" << "\n";
+  int aging;
+  cin >> aging;
+  cout << "Please enter the time quantum" << "\n";
+  int timeQuantum;
+  cin >> timeQuantum;
 
+  
   /************************** Initialize ****************************************/
+    
+  std::vector<process> schedule;
+  Load(schedule, fileName);
 
+  //sort arrival time
+  sort(schedule.begin(), schedule.end()-1, sortByArrival);
+  //Read(schedule);
+
+  //Need to account for both soft and hard RT environments.
+
+  //Remove all with burst, arrivals, and deadlines less than 0
+  schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessThanZeroDeadline),schedule.end()); 
+
+  int numProcess = schedule.size()-1;
+  int totalProcess = numProcess;
+  cout << "Number of processes " << numProcess << "\n";
+  //Setup the total amount of time based valid Burst and Arrived Times 
+  int totalTime = 0; 
+  //set values at wt,rt, and finished to 0
+  for(int l=0; l < schedule.size(); l++){
+    schedule[l].wt=0;
+    totalTime+=schedule[l].burst;
+    schedule[l].rt=schedule[l].burst;
+    schedule[l].finished=0;
+  }
+   
   /************************** Begin Simulation **********************************/
 
 }
@@ -407,7 +439,7 @@ int main(){
 
     RTS(fileName);
   } else if (i == 3) { 
-    WHS();
+    WHS(fileName);
 
   } else {
     cout << "Please enter a valid number";
