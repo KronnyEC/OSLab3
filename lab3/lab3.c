@@ -47,7 +47,7 @@ void Load(std::vector<process>& r, std::string fileName)
   getline(ifs, dumpline);
   cout << dumpline << "\n";
   */
-  
+
   //I think the problem is here but do not understand how this works.
   //TEMP: Ignoring the header fixes the problem
   //TODO: Fix this
@@ -67,21 +67,21 @@ void Read(std::vector<process>& r){
 }
 
 bool sortByArrivalDeadline(process const &lhs, process const &rhs){
- if(lhs.deadline < rhs.deadline){
-  return true;
- } else if (rhs.deadline < lhs.deadline){
-   return false;
-
- } else { //deadline equals
-   if (lhs.arrival < rhs.arrival){
+  if(lhs.deadline < rhs.deadline){
     return true;
-   } else if (rhs.arrival < lhs.arrival){
-     return false;
-   } else { //Arrival and Deadline Equal sort on priority
-     return lhs.priority < rhs.priority;
+  } else if (rhs.deadline < lhs.deadline){
+    return false;
 
-   }
- }
+  } else { //deadline equals
+    if (lhs.arrival < rhs.arrival){
+      return true;
+    } else if (rhs.arrival < lhs.arrival){
+      return false;
+    } else { //Arrival and Deadline Equal sort on priority
+      return lhs.priority < rhs.priority;
+
+    }
+  }
 
 }
 
@@ -102,11 +102,11 @@ bool lessThanZero(process s){
 }
 
 bool lessThanZeroDeadline(process s){
- if (s.arrival <0 || s.burst < 0 || s.deadline <0){
-  return true;
- } else {
-   return false;
- }
+  if (s.arrival <0 || s.burst < 0 || s.deadline <0){
+    return true;
+  } else {
+    return false;
+  }
 
 
 }
@@ -114,7 +114,7 @@ bool lessThanZeroDeadline(process s){
 void MFQS(string fileName){
   //Clear Screen
 
-/************************** Get Input******************************************/
+  /************************** Get Input******************************************/
   cout << string(5, '\n');
   std::cout << "MFQS Scheduler\n";
   std::cout << "Please enter the number of ques\n";
@@ -125,7 +125,7 @@ void MFQS(string fileName){
   int timeQuantum;
   std::cout << "Enter the time quantum:\n";
   cin >> timeQuantum; 
-  
+
   int aging;
   std::cout << "Enter the aging amount :\n";
   cin >> aging; 
@@ -137,19 +137,19 @@ void MFQS(string fileName){
   int i =0; 
 
 
-/************************** Initialize ****************************************/
+  /************************** Initialize ****************************************/
   cout << "---------\n";
   //Sort
   sort(schedule.begin(), schedule.end()-1, sortByPriority);
   sort(schedule.begin(), schedule.end()-1, sortByArrival);
- // Read(schedule);
+  // Read(schedule);
 
-   
+
   //cout << "Number of Processes Before Removal " << schedule.size() << "\n"; 
   //Remove all Arrival and Burst Times that are less than 0
   schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessThanZero),schedule.end()); 
   cout << "Number of Process After Removal " << schedule.size() << "\n";
-  
+
   //Setup the total amount of time based valid Burst and Arrived Times 
   int totalTime = 0; 
 
@@ -171,141 +171,142 @@ void MFQS(string fileName){
   int timeRan = 0;
   int t =0;
 
-   //cout << "Total number of processes scheduled " << schedule.end->P_ID;
+  //cout << "Total number of processes scheduled " << schedule.end->P_ID;
   // cout << "Total Time = " << totalTime << "\n";
   int elapsedTime = 0; 
   flag=1;
   i =0;
 
-/************************** Begin Simulation **********************************/
+  /************************** Begin Simulation **********************************/
   //Process the following
-   
+
   //cout << "Pid:\tBst:\tArr:\tPri:\tDline:\tI/O:\t\n";
   /*
-  for(int i=0; i < schedule.size()-1; i++){
-    std::cout << schedule[i].P_ID << "\n";
+     for(int i=0; i < schedule.size()-1; i++){
+     std::cout << schedule[i].P_ID << "\n";
 
-  }
-  */
-    //TODO: Incorporate Aging Time, calculate waiting time and turnaround time, verify what happens if a process cannot finish? Doesn't work if arrival is not 0 
-    cout << totalTime << "\n";    
-    for(time=0;time<totalTime && que!=0;){ 
-     for(i=0;i<numProcess;i++)
-     {
-       
+     }
+     */
+  //TODO: Incorporate Aging Time, calculate waiting time and turnaround time, verify what happens if a process cannot finish? Doesn't work if arrival is not 0 
+  cout << totalTime << "\n";    
+  for(time=0;time<totalTime && que!=0;){ 
+    for(i=0;i<numProcess;i++)
+    {
+
       if(schedule[i].arrival <= time && schedule[i].finished==0){
         //cout<<"PID:"<<schedule[i].P_ID<< " -> " << time ;
         if(flag !=0){
           schedule[i].cameIn = time;
           //cout << "PID: " << schedule[i].P_ID << " START: " << schedule[i].cameIn << "\n"; 
         }
-          
-      
+
+
         if(schedule[i].rt<timeQuantum){
-           dec=schedule[i].rt;
+          dec=schedule[i].rt;
           // cout << "dec " << schedule[i].rt << "\n";     
         } else {dec=timeQuantum;}
 
         schedule[i].rt=schedule[i].rt-dec;
         //cout << "Remaining " << schedule[i].rt << "\n";
         if(schedule[i].rt==0) { 
-             schedule[i].finished=1;
-                 
-             //schedule[i].end = time;
-              //cout << "PID: " << schedule[i].P_ID << " END: " << schedule[i].end << "\n"; 
-             //cout << schedule[i].end << "\n";    
+          schedule[i].finished=1;
+
+          //schedule[i].end = time;
+          //cout << "PID: " << schedule[i].P_ID << " END: " << schedule[i].end << "\n"; 
+          //cout << schedule[i].end << "\n";    
         }
-         time=time+dec;
-           
-         if(schedule[i].finished==1){
+        time=time+dec;
 
-           schedule[i].end = time;
+        if(schedule[i].finished==1){
+
+          schedule[i].end = time;
 
 
-         }       
-         //cout << "PID: " << schedule[i].P_ID << " END: " << time << "\n"; 
-         //cout << "Time " << time << "\n";
-         //cout << "Que is " << que << "\n";
-       } 
-        
-     }
-     
-     //que decreases after first iteration
-     que--;
-     flag=0;
-     //cout << "Que now is " << que << "\n";    
-     //Time quantum doubles
-     timeQuantum = timeQuantum*2;
-     //cout << "Time Quantum " << timeQuantum << "\n";     
+        }       
+        //cout << "PID: " << schedule[i].P_ID << " END: " << time << "\n"; 
+        //cout << "Time " << time << "\n";
+        //cout << "Que is " << que << "\n";
+      } 
 
-     //FCFS 
-     if(que==1){
-     //cout << "Time at FCFS que is " << time << "\n";
-      
+    }
+
+    //que decreases after first iteration
+    que--;
+    flag=0;
+    //cout << "Que now is " << que << "\n";    
+    //Time quantum doubles
+    timeQuantum = timeQuantum*2;
+    //cout << "Time Quantum " << timeQuantum << "\n";     
+
+    //FCFS 
+    if(que==1){
+      //cout << "Time at FCFS que is " << time << "\n";
+
       for(i=0;i<numProcess;i++){
-       if(schedule[i].arrival <= time && schedule[i].finished==0){
-         if(schedule[i].rt<timeQuantum){
-           dec=schedule[i].rt;
-           //cout << "Process that needs to finish is " << schedule[i].P_ID << "with process time of " << schedule[i].rt <<  "\n";
-         } else {dec=timeQuantum;}
-          
-         //schedule[i].rt=schedule[i].rt-dec;
-         time=time+dec;
-         
-         schedule[i].end = time;
-         //cout << "Time " << time << "\n";
-         }
-         
-          
+        if(schedule[i].arrival <= time && schedule[i].finished==0){
+          if(schedule[i].rt<timeQuantum){
+            dec=schedule[i].rt;
+            //cout << "Process that needs to finish is " << schedule[i].P_ID << "with process time of " << schedule[i].rt <<  "\n";
+          } else {dec=timeQuantum;}
+
+          //schedule[i].rt=schedule[i].rt-dec;
+          time=time+dec;
+
+          schedule[i].end = time;
+          //cout << "Time " << time << "\n";
         }
-       }
+
+
       }
+    }
+  }
   float avwt = 0;
   float avtt = 0;
   for(int i=0; i<numProcess;i++){
-     
-     cout << "PID: " << schedule[i].P_ID << " START: " << schedule[i].cameIn << " END: " << schedule[i].end << "\n"; 
-     schedule[i].wt = schedule[i].cameIn;
-     schedule[i].tt = schedule[i].wt + schedule[i].burst; 
-     avwt += schedule[i].wt;
-     avtt += schedule[i].tt;     
+
+    cout << "PID: " << schedule[i].P_ID << " START: " << schedule[i].cameIn << " END: " << schedule[i].end << "\n"; 
+    schedule[i].wt = schedule[i].cameIn;
+    schedule[i].tt = schedule[i].wt + schedule[i].burst; 
+    avwt += schedule[i].wt;
+    avtt += schedule[i].tt;     
   }
-  
+
   avwt = avwt/numProcess;
   avtt = avtt/numProcess;
   cout << "Average Waiting Time " << avwt << " Average Turnaround Time " << avtt << "\n";
-    
+
 }
 
 //TODO:Algorithm is very slow need to recalculate
 void RTS(string fileName){
-/************************** Get Input *****************************************/
+  /************************** Get Input *****************************************/
   std::cout << "RTS" << "\n";
   cout << "---------------" << "\n";
-   int hard_or_soft;
-  
+  int hard_or_soft;
+
   //Allow for Hard or Soft RTS
   cout << "Please enter a number Hard or Soft RTS" << "\n";
   cout << "1. Hard RTS" << "\n";
   cout << "2. Soft RTS" << "\n";
   cin >> hard_or_soft;
-  
-  
-/************************** Initialize ****************************************/
+
+
+  /************************** Initialize ****************************************/
   std::vector<process> schedule;
   Load(schedule, fileName);
- 
+
   //sort arrival time
   sort(schedule.begin(), schedule.end()-1, sortByArrivalDeadline);
   sort(schedule.begin(), schedule.end()-1, sortByArrival);
-  Read(schedule);
+  //Read(schedule);
 
   //Need to account for both soft and hard RT environments.
-  
+
   //Remove all with burst, arrivals, and deadlines less than 0
   schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessThanZeroDeadline),schedule.end()); 
-    
+
   int numProcess = schedule.size()-1;
+  int totalProcess = numProcess;
   cout << "Number of processes " << numProcess << "\n";
   //Setup the total amount of time based valid Burst and Arrived Times 
   int totalTime = 0; 
@@ -318,61 +319,67 @@ void RTS(string fileName){
     schedule[l].finished=0;
   }
 
-  
-/************************** Begin Simulation **********************************/
+
+  /************************** Begin Simulation **********************************/
   //we can check preempty if it will fail if the arrival time is greater than the deadline time
   if (hard_or_soft == 1){
-   for(int i=0; i<numProcess;i++){
-    if(schedule[i].arrival > schedule[i].deadline){
-     cout << "Process " << schedule[i].P_ID << " will not make the deadline. It will arrive at " << schedule[i].arrival << "but has a deadline of " << schedule[i].deadline << "\n"; 
-     break;
-    } 
-
-   }   
-
+    for(int i=0; i<numProcess;i++){
+      ; if(schedule[i].arrival > schedule[i].deadline){
+        cout << "Process " << schedule[i].P_ID << " will not make the deadline. It will arrive at " << schedule[i].arrival << "but has a deadline of " << schedule[i].deadline << "\n"; 
+        return;
+      } 
+    }   
   }
 
-
-  /*
-  for(int i=0; i<numProcess;i++){
-    for(int j=i;j<numProcess;j++){
-      cout << "Process " << schedule[j].P_ID << "\n";
-      if(schedule[j+1].arrival == schedule[j].arrival){
-        temp=schedule[j+1].deadline;
-        schedule[j+1].deadline=schedule[j].deadline;
-        schedule[j].deadline=temp;
-        
-        temp=schedule[j+1].P_ID;
-        schedule[j+1].P_ID = schedule[j].P_ID; 
-        schedule[j].P_ID = temp;
-
-      }
-
+  //manny
+  std::vector<process> queue;
+  int tick = 0;
+  int running = 1;
+  cout << schedule[0].arrival << "\n";
+  while(running) {
+    // check for new processes
+    if (!schedule.empty() && schedule[0].arrival <= tick) {
+      cout << "here\n";
+      queue.push_back(schedule[0]);
+      schedule.erase(schedule.begin());
     }
-
-
-  }*/
-  
+    sort(queue.begin(), queue.end()-1, sortByDeadline);
+    // do work
+    if (!queue.empty()) {
+      if (queue[0].burst + tick > queue[0].deadline) {
+        cout << "Process "<< queue[0].P_ID << " can not finish...\n";
+        queue.erase(queue.begin());
+        numProcess--;
+      } else {
+        queue[0].burst--;
+        if (queue[0].burst <= 0) {
+          cout << "Process " << queue[0].P_ID << " ended on tick " << tick+1 << "\n";
+          queue.erase(queue.begin());
+          numProcess--;
+        }
+      }
+    }
+    if (numProcess == 0) {
+      running = 0;
+    }
+    tick++;
+  }
   float avwt = 0;
   float avtt = 0;
-  /*
-  for(int i=0; i<numProcess;i++){
-   cout << "Process Order" << schedule[i].P_ID << "\n";   
-  }*/
-  
-  avwt = avwt/numProcess;
-  avtt = avtt/numProcess;
+
+  avwt = avwt/totalProcess;
+  avtt = avtt/totalProcess;
   cout << "Average Waiting Time " << avwt << " Average Turnaround Time " << avtt << "\n";
 
 }
 void WHS(){
   std::cout << "WHS";
 
-/************************** Get Input *****************************************/
-  
-/************************** Initialize ****************************************/
-  
-/************************** Begin Simulation **********************************/
+  /************************** Get Input *****************************************/
+
+  /************************** Initialize ****************************************/
+
+  /************************** Begin Simulation **********************************/
 
 }
 
