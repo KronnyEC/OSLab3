@@ -20,6 +20,7 @@ struct process {
   int time;
   int cameIn;
   int end;
+  int aging;
 };
 
 std::istream& operator>>(std::istream& is, process& s)
@@ -379,12 +380,9 @@ void RTS(string fileName){
 }
 
 void WHS(string fileName){
-  std::cout << "WHS";
+  std::cout << "WHS" << "\n";
 
   /************************** Get Input *****************************************/
-  cout << "Please enter the aging time" << "\n";
-  int aging;
-  cin >> aging;
   cout << "Please enter the time quantum" << "\n";
   int timeQuantum;
   cin >> timeQuantum;
@@ -415,9 +413,119 @@ void WHS(string fileName){
     totalTime+=schedule[l].burst;
     schedule[l].rt=schedule[l].burst;
     schedule[l].finished=0;
+    schedule[l].aging =0;
   }
 
-  /************************** Begin Simulation **********************************/
+   /************************** Begin Simulation **********************************/
+  std::vector<process> queue;
+  int tick = 0;
+  int aging = 100;
+  int running =1;
+  int time = 0;
+  Read(schedule);
+  while (running){
+  
+   if(!schedule.empty() && schedule[0].arrival <= tick){
+     queue.push_back(schedule[0]);
+     schedule.erase(schedule.begin());
+     
+     if(tick != 0 && queue[0].aging == tick){
+        //aging has expired boost its priority
+        queue[0].priority = queue[0].priority + 10;
+        cout << "Priority Change for process " << queue[0].P_ID << " to " << queue[0].priority << "\n"; 
+     }
+     if (queue[0].i_o > 0){ //boost the priority 
+       queue[0].priority = queue[0].i_o + queue[0].priority;
+       
+        cout << "Priority Change for process " << queue[0].P_ID << " to " << queue[0].priority << "\n"; 
+     }
+     sort(queue.begin(), queue.end()-1, sortByPriority);
+     //Read(queue);
+   }	
+   if(!queue.empty()){
+   
+    if(queue[0].rt<timeQuantum){
+      
+      queue[0].rt--;
+   } else { //Process will not finished and will need to demote accordingly 
+     queue[0].rt--; 
+     time++;
+     if (time == timeQuantum){ 
+      //Demote the process based on how long it took.
+     	if (queue[0].priority > queue[0].priority - time){
+          queue[0].priority = queue[0].priority - time;
+     	}
+        //Set the aging counter for the process; 
+        queue[0].aging = tick+1 + aging;
+     }  
+     //send back to the queue
+     queue.push_back(queue[0]); 
+   }
+   if(queue[0].rt <= 0){
+    cout << "Ended at " << tick+1 << ": process " << queue[0].P_ID << "\n"; 
+    queue.erase(queue.begin());
+    numProcess--;
+   }
+  } 
+  if (numProcess == 0){
+   running = 0;
+  }
+  tick++;
+}
+  /*
+  //RR implementation 
+  int time, flag, dec;   
+  for(time=0;time<totalTime;){ 
+    for(int i=0;i<numProcess;i++)
+    {
+
+      if(schedule[i].arrival <= time && schedule[i].finished==0){
+        //cout<<"PID:"<<schedule[i].P_ID<< " -> " << time ;
+        if(flag !=0){
+          schedule[i].cameIn = time;
+          cout << "PID: " << schedule[i].P_ID << " START: " << schedule[i].cameIn << "\n"; 
+        }
+
+
+        if(schedule[i].rt<timeQuantum){
+          dec=schedule[i].rt;
+          // cout << "dec " << schedule[i].rt << "\n";     
+        } else {dec=timeQuantum;}
+
+        schedule[i].rt=schedule[i].rt-dec;
+        //cout << "Remaining " << schedule[i].rt << "\n";
+        if(schedule[i].rt==0) { 
+          schedule[i].finished=1;
+
+          //schedule[i].end = time;
+          //cout << "PID: " << schedule[i].P_ID << " END: " << schedule[i].end << "\n"; 
+          //cout << schedule[i].end << "\n";    
+        }
+        time=time+dec;
+
+        if(schedule[i].finished==1){
+
+          schedule[i].end = time;
+
+
+        }       
+        cout << "PID: " << schedule[i].P_ID << " END: " << time << "\n"; 
+        //cout << "Time " << time << "\n";
+        //cout << "Que is " << que << "\n";
+      } 
+
+    }
+  }*/
+
+
+  float avwt = 0;
+  float avtt = 0;
+
+  avwt = avwt/totalProcess;
+  avtt = avtt/totalProcess;
+  cout << "Average Waiting Time " << avwt << " Average Turnaround Time " << avtt << "\n";
+   
+  
 
 }
 
