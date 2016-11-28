@@ -175,6 +175,7 @@ void MFQS(string fileName){
   int time, flag, dec, j, count = 0;
   int remainingTime = 0; 
   int remainingProcess = 0;
+  int totalProcess = 0;
   int numProcess = schedule.size() -1;
   cout << "Number of Processes " << numProcess << "\n"; 
   //cout << "TimeQuantum : " << timeQuantum << "\n";
@@ -575,7 +576,7 @@ void WHS(string fileName){
     } 
    }
    if(queue[0].rt <= 0){
-    cout << "Ended at " << tick+1 << ": process " << queue[0].P_ID << "\n"; 
+    cout << "Ended at " << tick << ": process " << queue[0].P_ID << "\n"; 
     queue.erase(queue.begin());
     numProcess--;
    }
