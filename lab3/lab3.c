@@ -86,6 +86,16 @@ bool sortByArrivalDeadline(process const &lhs, process const &rhs){
 
 }
 
+bool priorityCheck(int x){
+  if ( x >= 0 && x <=49){
+     return true;   
+  } else {
+     return false;
+  }
+
+
+}
+
 bool sortByBurst(process lhs, process rhs){return lhs.burst < rhs.burst; }
 
 bool sortByPriority(process lhs, process rhs){return lhs.priority > rhs.priority; }
@@ -169,6 +179,7 @@ void MFQS(string fileName){
   cout << "Number of Processes " << numProcess << "\n"; 
   //cout << "TimeQuantum : " << timeQuantum << "\n";
   remainingProcess = numProcess;
+  totalProcess = numProcess;
   int timeRan = 0;
   int t =0;
 
@@ -189,8 +200,83 @@ void MFQS(string fileName){
      }
      */
   //TODO: Incorporate Aging Time, calculate waiting time and turnaround time, verify what happens if a process cannot finish? Doesn't work if arrival is not 0 
-  cout << totalTime << "\n";    
-  for(time=0;time<totalTime && que!=0;){ 
+  //cout << totalTime << "\n";
+      
+  float avwt = 0;
+  float avtt = 0;
+  std::vector<process> queue;
+  int tick = 0;
+  int clockTime = 0;
+  int running =1;
+  int p = 0;
+  int in = 0;
+  Read(schedule);
+  while (running){
+  
+   if(!schedule.empty() && schedule[0].arrival <= tick){
+     queue.push_back(schedule[0]);
+     
+     schedule.erase(schedule.begin());
+    
+     //sort(queue.begin(), queue.end()-1, sortByArrival);
+     //Read(queue);
+   }	
+   if(!queue.empty() && que != 1){
+   
+    if(queue[0].rt<timeQuantum){
+      
+      queue[0].rt--;
+   } else { //Process will not finished and will need to demote accordingly 
+     queue[0].rt--; 
+     clockTime++;
+     cout << "time " << clockTime << "\n";
+     if (clockTime == timeQuantum){ 
+      //Demote the process based on how long it took. 
+        //Set the aging counter for the process; 
+        queue[0].aging = tick+1 + aging;
+     //send back to the queue
+     p++;
+     clockTime =0;
+     cout << "p " << p << "\n";
+     queue.push_back(queue[0]);
+    } 
+   }
+   if(queue[0].rt <= 0){
+    cout << "Ended at " << tick+1 << ": process " << queue[0].P_ID << "\n"; 
+    avtt += (tick+1 - in); 
+    
+    queue.erase(queue.begin());
+    numProcess--;
+    p++;
+    cout << "p " << p << "\n";
+   }
+  }
+  if (remainingProcess == p){
+   que--;
+   remainingProcess = numProcess;
+   timeQuantum = timeQuantum * 2;
+   p = 0;
+   cout << "RemainingProcess " << remainingProcess << " TimeQuantum : " << timeQuantum << " que : " << que << "\n";
+  }
+ 
+  if (que ==1){
+    queue[0].rt--;
+    if(queue[0].rt<0){
+    
+    cout << "Ended at " << tick+1 << ": process " << queue[0].P_ID << "\n"; 
+     queue.erase(queue.begin());
+     numProcess--;
+    } 
+
+  }
+ 
+  if (numProcess == 0){
+   running = 0;
+  }
+  tick++;
+}
+  /* MFQS old implementation 
+  for(time=schedule[0].arrival;time<totalTime && que!=0;){ 
     for(i=0;i<numProcess;i++)
     {
 
@@ -260,9 +346,9 @@ void MFQS(string fileName){
 
       }
     }
-  }
-  float avwt = 0;
-  float avtt = 0;
+  } */
+ 
+  /*
   for(int i=0; i<numProcess;i++){
 
     cout << "PID: " << schedule[i].P_ID << " START: " << schedule[i].cameIn << " END: " << schedule[i].end << "\n"; 
@@ -270,7 +356,7 @@ void MFQS(string fileName){
     schedule[i].tt = schedule[i].wt + schedule[i].burst; 
     avwt += schedule[i].wt;
     avtt += schedule[i].tt;     
-  }
+  }*/
 
   avwt = avwt/numProcess;
   avtt = avtt/numProcess;
@@ -428,16 +514,42 @@ void WHS(string fileName){
    if(!schedule.empty() && schedule[0].arrival <= tick){
      queue.push_back(schedule[0]);
      schedule.erase(schedule.begin());
-     
+    
+     //check to make sure that priority stays within bounds of its oringal priority 0-49 and 50 to 99  
      if(tick != 0 && queue[0].aging == tick){
+        
         //aging has expired boost its priority
-        queue[0].priority = queue[0].priority + 10;
-        cout << "Priority Change for process " << queue[0].P_ID << " to " << queue[0].priority << "\n"; 
+        if (priorityCheck(queue[0].priority) == true){ //low bound
+           if (queue[0].priority + 10 > 49){
+              queue[0].priority = 49;
+           } else {
+             queue[0].priority = queue[0].priority + 10;
+           }
+        } else {
+           if (queue[0].priority + 10 > 99){
+              queue[0].priority = 99;            
+           }else{
+              queue[0].priority = queue[0].priority + 10; 
+           }
+        }
+
      }
+     
      if (queue[0].i_o > 0){ //boost the priority 
-       queue[0].priority = queue[0].i_o + queue[0].priority;
        
-        cout << "Priority Change for process " << queue[0].P_ID << " to " << queue[0].priority << "\n"; 
+        if (priorityCheck(queue[0].priority) == true){ //low bound
+           if (queue[0].priority + queue[0].i_o > 49){
+              queue[0].priority = 49;
+           } else {
+             queue[0].priority = queue[0].priority + queue[0].i_o;
+           }
+        } else {
+           if (queue[0].priority + queue[0].i_o > 99){
+              queue[0].priority = 99;            
+           }else{
+             queue[0].priority = queue[0].priority + queue[0].i_o;
+           }
+        }
      }
      sort(queue.begin(), queue.end()-1, sortByPriority);
      //Read(queue);
@@ -451,15 +563,16 @@ void WHS(string fileName){
      queue[0].rt--; 
      time++;
      if (time == timeQuantum){ 
-      //Demote the process based on how long it took.
+      //Demote the process based on how long it took. 
      	if (queue[0].priority > queue[0].priority - time){
           queue[0].priority = queue[0].priority - time;
      	}
         //Set the aging counter for the process; 
         queue[0].aging = tick+1 + aging;
-     }  
+        time =0;   
      //send back to the queue
-     queue.push_back(queue[0]); 
+     queue.push_back(queue[0]);
+    } 
    }
    if(queue[0].rt <= 0){
     cout << "Ended at " << tick+1 << ": process " << queue[0].P_ID << "\n"; 
@@ -472,51 +585,6 @@ void WHS(string fileName){
   }
   tick++;
 }
-  /*
-  //RR implementation 
-  int time, flag, dec;   
-  for(time=0;time<totalTime;){ 
-    for(int i=0;i<numProcess;i++)
-    {
-
-      if(schedule[i].arrival <= time && schedule[i].finished==0){
-        //cout<<"PID:"<<schedule[i].P_ID<< " -> " << time ;
-        if(flag !=0){
-          schedule[i].cameIn = time;
-          cout << "PID: " << schedule[i].P_ID << " START: " << schedule[i].cameIn << "\n"; 
-        }
-
-
-        if(schedule[i].rt<timeQuantum){
-          dec=schedule[i].rt;
-          // cout << "dec " << schedule[i].rt << "\n";     
-        } else {dec=timeQuantum;}
-
-        schedule[i].rt=schedule[i].rt-dec;
-        //cout << "Remaining " << schedule[i].rt << "\n";
-        if(schedule[i].rt==0) { 
-          schedule[i].finished=1;
-
-          //schedule[i].end = time;
-          //cout << "PID: " << schedule[i].P_ID << " END: " << schedule[i].end << "\n"; 
-          //cout << schedule[i].end << "\n";    
-        }
-        time=time+dec;
-
-        if(schedule[i].finished==1){
-
-          schedule[i].end = time;
-
-
-        }       
-        cout << "PID: " << schedule[i].P_ID << " END: " << time << "\n"; 
-        //cout << "Time " << time << "\n";
-        //cout << "Que is " << que << "\n";
-      } 
-
-    }
-  }*/
-
 
   float avwt = 0;
   float avtt = 0;
@@ -524,8 +592,6 @@ void WHS(string fileName){
   avwt = avwt/totalProcess;
   avtt = avtt/totalProcess;
   cout << "Average Waiting Time " << avwt << " Average Turnaround Time " << avtt << "\n";
-   
-  
 
 }
 
