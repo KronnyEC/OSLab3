@@ -183,7 +183,7 @@ void MFQS(string fileName){
   totalProcess = numProcess;
   int timeRan = 0;
   int t =0;
-
+  int runQueue =1;
   //cout << "Total number of processes scheduled " << schedule.end->P_ID;
   // cout << "Total Time = " << totalTime << "\n";
   int elapsedTime = 0; 
@@ -206,6 +206,10 @@ void MFQS(string fileName){
   float avwt = 0;
   float avtt = 0;
   std::vector<process> queue;
+  std::vector<process> queue2;
+  std::vector<process> queue3;
+  std::vector<process> queue4;
+  std::vector<process> queue5;
   int tick = 0;
   int clockTime = 0;
   int running =1;
@@ -215,31 +219,37 @@ void MFQS(string fileName){
   while (running){
   
    if(!schedule.empty() && schedule[0].arrival <= tick){
-     queue.push_back(schedule[0]);
      
+     queue.push_back(schedule[0]);
+       
      schedule.erase(schedule.begin());
-    
+     
      //sort(queue.begin(), queue.end()-1, sortByArrival);
      //Read(queue);
-   }	
-   if(!queue.empty() && que != 1){
+   }
+   	
+   if(!queue.empty() && runQueue != que){
    
+    cout << "Currently working on que " << runQueue << " with P_ID: " <<  queue[0].P_ID << " with remaining time " << queue[0].rt << "\n"; 
     if(queue[0].rt<timeQuantum){
       
       queue[0].rt--;
    } else { //Process will not finished and will need to demote accordingly 
      queue[0].rt--; 
      clockTime++;
-     cout << "time " << clockTime << "\n";
+    
+     //cout << "time " << clockTime << "\n";
      if (clockTime == timeQuantum){ 
       //Demote the process based on how long it took. 
         //Set the aging counter for the process; 
         queue[0].aging = tick+1 + aging;
-     //send back to the queue
-     p++;
-     clockTime =0;
-     cout << "p " << p << "\n";
-     queue.push_back(queue[0]);
+        //send back to the queue
+        p++;
+        clockTime =0;
+        //cout << "p " << p << "\n";
+        queue.push_back(queue[0]);
+
+        queue.erase(queue.begin());    
     } 
    }
    if(queue[0].rt <= 0){
@@ -253,14 +263,14 @@ void MFQS(string fileName){
    }
   }
   if (remainingProcess == p){
-   que--;
+   runQueue++;
    remainingProcess = numProcess;
    timeQuantum = timeQuantum * 2;
    p = 0;
    cout << "RemainingProcess " << remainingProcess << " TimeQuantum : " << timeQuantum << " que : " << que << "\n";
   }
  
-  if (que ==1){
+  if (runQueue ==  que){
     queue[0].rt--;
     if(queue[0].rt<0){
     
@@ -323,7 +333,6 @@ void RTS(string fileName){
 
   int numProcess = schedule.size()-1;
   int totalProcess = numProcess;
-  cout << "Number of processes " << numProcess << "\n";
   //Setup the total amount of time based valid Burst and Arrived Times 
   int totalTime = 0; 
   int temp;
@@ -349,33 +358,55 @@ void RTS(string fileName){
 
   //manny
   std::vector<process> queue;
+  int total_wait_time = 0;
+  int total_turn_around_time = 0;
   int tick = 0;
   int running = 1;
-  cout << "First item arrives at: " << schedule[0].arrival << "\n\n";
-  Read(schedule);
+  int completed_processes = 0;
+#ifdef DEBUG
+  //cout << "\nSchedule:\n";
+  //Read(schedule);
+  //cout << "\n";
+#endif
   while(running) {
     // check for new processes
-    if (!schedule.empty() && schedule[0].arrival <= tick) {
+    while(!schedule.empty() && schedule[0].arrival <= tick) {
+      schedule[0].rt = 0;
       queue.push_back(schedule[0]);
       schedule.erase(schedule.begin());
       sort(queue.begin(), queue.end()-1, sortByDeadline);
     }
     // do work
     if (!queue.empty()) {
+      cout << "\n";
+      Read(queue);
+      cout << "\n";
+      cout << "Time: " << tick << " Process: " << queue[0].P_ID << "\n";
       if (queue[0].burst + tick > queue[0].deadline) {
         if (hard_or_soft == 2) {
-          cout << "\033[1;31mFAILED: PID:\tR_BST:\tDL:\tCURR\033[0m\n";
-          cout << "\033[1;31m\t" << queue[0].P_ID << "\t" << queue[0].burst << "\t" << queue[0].deadline << "\t" << tick << "\033[0m\n";
+          cout << "\033[1;31mPROCESS " << queue[0].P_ID << " FAILED: Removing Process\033[0m\n";
+#ifdef DEBUG
+          cout << "\033[1;31mPID:\tARR\tR_BST:\tDL:\tCURR\033[0m\n";
+          cout << "\033[1;31m" << queue[0].P_ID << "\t" <<queue[0].arrival << "\t" << queue[0].burst << "\t" << queue[0].deadline << "\t" << tick << "\033[0m\n";
+#endif
           queue.erase(queue.begin());
           numProcess--;
         } else {
-          cout << "\033[1;31mFAILED: ABORTING SCHEDULAR\033[0m\n";
+          cout << "\033[1;31mPROCESS " << queue[0].P_ID << " FAILED: ABORTING SCHEDULAR\033[0m\n";
           return;
         }
       } else {
         queue[0].burst--;
+        queue[0].rt++;
         if (queue[0].burst <= 0) {
-          cout << "Ended at " << tick+1 << ": process " << queue[0].P_ID << "\n";
+          int wait_time = tick+1 - queue[0].arrival;
+          total_wait_time += wait_time - queue[0].rt;;
+          total_turn_around_time += wait_time;
+          completed_processes++;
+#ifdef DEBUG
+          cout << "Process " << queue[0].P_ID << " ended at " << tick+1 << "\n";
+          cout << "cur: " << tick+1 << "\tarr: " << queue[0].arrival << "\trt: " << queue[0].rt << " total wait " << total_wait_time << "\n";
+#endif
           queue.erase(queue.begin());
           numProcess--;
         }
@@ -388,10 +419,9 @@ void RTS(string fileName){
   }
   float avwt = 0;
   float avtt = 0;
-
-  avwt = avwt/totalProcess;
-  avtt = avtt/totalProcess;
-  cout << "Average Waiting Time " << avwt << " Average Turnaround Time " << avtt << "\n";
+  avwt = total_wait_time/totalProcess;
+  avtt = total_turn_around_time/totalProcess;
+  cout << "\nNumber of processes: " << totalProcess << "\nSucessful Processes: " << completed_processes << "\nAverage Waiting Time: " << avwt << "\nAverage Turnaround Time: " << avtt << "\n";
 }
 
 void WHS(string fileName){
@@ -485,6 +515,7 @@ void WHS(string fileName){
    }	
    if(!queue.empty()){
    
+    cout << "Currently working process with P_ID: " <<  queue[0].P_ID << " with remaining time " << queue[0].rt << "\n"; 
     if(queue[0].rt<timeQuantum){
       
       queue[0].rt--;
@@ -501,12 +532,14 @@ void WHS(string fileName){
         time =0;   
      //send back to the queue
      queue.push_back(queue[0]);
+     queue.erase(queue.begin());    
     } 
    }
    if(queue[0].rt <= 0){
     cout << "Ended at " << tick << ": process " << queue[0].P_ID << "\n"; 
     queue.erase(queue.begin());
     numProcess--;
+    
    }
   } 
   if (numProcess == 0){
