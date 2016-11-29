@@ -21,6 +21,7 @@ struct process {
   int cameIn;
   int end;
   int aging;
+  int boosted;
 };
 
 std::istream& operator>>(std::istream& is, process& s)
@@ -467,15 +468,17 @@ void WHS(string fileName){
   int aging = 100;
   int running =1;
   int time = 0;
+  int flagSet = 1;
   Read(schedule);
   while (running){
   
-   if(!schedule.empty() && schedule[0].arrival <= tick){
-     queue.push_back(schedule[0]);
-     schedule.erase(schedule.begin());
-    
+     
+     while(!schedule.empty() && schedule[0].arrival <= tick){
+      queue.push_back(schedule[0]);
+      schedule.erase(schedule.begin());
+     
      //check to make sure that priority stays within bounds of its oringal priority 0-49 and 50 to 99  
-     if(tick != 0 && queue[0].aging == tick){
+     /*if(tick != 0 && queue[0].aging == tick){
         
         //aging has expired boost its priority
         if (priorityCheck(queue[0].priority) == true){ //low bound
@@ -492,10 +495,10 @@ void WHS(string fileName){
            }
         }
 
-     }
+     }*/
      
-     if (queue[0].i_o > 0){ //boost the priority 
-       
+     if (queue[0].i_o > 0 && queue[0].boosted != 1){ //boost the priority 
+        queue[0].boosted = 1;
         if (priorityCheck(queue[0].priority) == true){ //low bound
            if (queue[0].priority + queue[0].i_o > 49){
               queue[0].priority = 49;
@@ -510,31 +513,45 @@ void WHS(string fileName){
            }
         }
      }
-     sort(queue.begin(), queue.end()-1, sortByPriority);
      //Read(queue);
-   }	
+   }
+
+   //all processes have arrived, sort time now
+
    if(!queue.empty()){
-   
+     flagSet =0;
+     sort(queue.begin(), queue.end(), sortByPriority);
+     Read(queue);
     cout << "Currently working process with P_ID: " <<  queue[0].P_ID << " with remaining time " << queue[0].rt << "\n"; 
     if(queue[0].rt<timeQuantum){
       
+      while(queue[0].rt !=0){
       queue[0].rt--;
-   } else { //Process will not finished and will need to demote accordingly 
-     queue[0].rt--; 
-     time++;
-     if (time == timeQuantum){ 
-      //Demote the process based on how long it took. 
-     	if (queue[0].priority > queue[0].priority - time){
-          queue[0].priority = queue[0].priority - time;
+      tick++;
+      
+        cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+      }
+    } else { //Process will not finished and will need to demote accordingly 
+     
+     for(int i=0; i<timeQuantum;i++){
+        queue[0].rt--;
+        tick++;
+          
+        cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+     }
+     
+     //Demote the process based on how long it took. 
+   	if (queue[0].priority < (queue[0].priority - timeQuantum)){
+          queue[0].priority = queue[0].priority - timeQuantum;
+          cout << " Priorit for " << queue[0].P_ID << " changed to " << queue[0].priority << "\n";
      	}
         //Set the aging counter for the process; 
         queue[0].aging = tick+1 + aging;
-        time =0;   
      //send back to the queue
      queue.push_back(queue[0]);
      queue.erase(queue.begin());    
     } 
-   }
+   
    if(queue[0].rt <= 0){
     cout << "Ended at " << tick << ": process " << queue[0].P_ID << "\n"; 
     queue.erase(queue.begin());
@@ -542,10 +559,14 @@ void WHS(string fileName){
     
    }
   } 
+  if (flagSet == 1){
+   tick++;
+
+  }
+
   if (numProcess == 0){
    running = 0;
   }
-  tick++;
 }
 
   float avwt = 0;
