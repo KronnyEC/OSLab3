@@ -30,7 +30,6 @@ std::istream& operator>>(std::istream& is, process& s)
 {
   is >> s.P_ID >> s.burst >> s.arrival >> s.priority >> s.deadline >> s.i_o;
   return is;
-
 }
 
 std::ostream& operator<<(std::ostream& os, process& s)
@@ -98,6 +97,18 @@ bool priorityCheck(int x){
 
 
 }
+/*
+template< typename T >
+typename std::vector<T>::iterator 
+   insert_sorted( std::vector<T> & vec, T const& item )
+{
+    return vec.insert
+        ( 
+            std::upper_bound( vec.begin(), vec.end(), item ),
+            item 
+        );
+}*/
+
 
 bool sortByBurst(process lhs, process rhs){return lhs.burst < rhs.burst; }
 
@@ -494,24 +505,28 @@ void WHS(string fileName){
   //Read(schedule);
   while (running){
      while(!schedule.empty() && schedule[0].arrival <= tick){
-      queue.push_back(schedule[0]);
-      schedule.erase(schedule.begin());
-     if (queue[0].i_o > 0){ //boost the priority 
-        queue[0].boosted = 1;
-        if (priorityCheck(queue[0].priority) == true){ //low bound
-           if (queue[0].priority + queue[0].i_o > 49){
-              queue[0].priority = 49;
+     //queue.push_back(schedule[0]);
+      //schedule.erase(schedule.begin());
+     if (schedule[0].i_o > 0){ //boost the priority 
+        schedule[0].boosted = 1;
+        cout << "Process Boosted " << schedule[0].P_ID << " from " << schedule[0].priority << " to ";
+        if (priorityCheck(schedule[0].priority) == true){ //low bound
+           if (schedule[0].priority + schedule[0].i_o > 49){
+              schedule[0].priority = 49;
            } else {
-             queue[0].priority = queue[0].priority + queue[0].i_o;
+             schedule[0].priority = schedule[0].priority + schedule[0].i_o;
            }
         } else {
-           if (queue[0].priority + queue[0].i_o > 99){
-              queue[0].priority = 99;            
+           if (schedule[0].priority + schedule[0].i_o > 99){
+              schedule[0].priority = 99;            
            }else{
-             queue[0].priority = queue[0].priority + queue[0].i_o;
+             schedule[0].priority = schedule[0].priority + schedule[0].i_o;
            }
         }
+       cout << schedule[0].priority << "\n";
      }
+     queue.push_back(schedule[0]);
+     schedule.erase(schedule.begin());
      //Read(queue);
    }
 
@@ -519,8 +534,10 @@ void WHS(string fileName){
 
    if(!queue.empty()){
      flagSet =0;
-     sort(queue.begin(), queue.end(), sortByPriority);
-     //Read(queue);
+     std::sort(queue.begin(),queue.end(),sortByPriority);
+     
+     //insertSort(queue);
+     Read(queue);
     //cout << "Currently working process with P_ID: " <<  queue[0].P_ID << " with remaining time " << queue[0].rt << "\n"; 
     if(queue[0].rt<timeQuantum){
       
@@ -536,13 +553,13 @@ void WHS(string fileName){
         queue[0].rt--;
         tick++;
           
-       // cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+        //cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
      }
      
      //Demote the process based on how long it took. 
    	if (queue[0].priority < (queue[0].priority - timeQuantum)){
           queue[0].priority = queue[0].priority - timeQuantum;
-          cout << " Priority for " << queue[0].P_ID << " changed to " << queue[0].priority << "\n";
+          //cout << " Priority for " << queue[0].P_ID << " changed to " << queue[0].priority << "\n";
      	}
         //Set the aging counter for the process; 
         queue[0].aging = tick+1 + aging;
@@ -552,7 +569,7 @@ void WHS(string fileName){
     } 
    
    if(queue[0].rt <= 0){
-    //cout << "Ended at " << tick << ": process " << queue[0].P_ID << "\n"; 
+    cout << "Ended at " << tick << ": process " << queue[0].P_ID << "\n"; 
     int wait_time = tick+1 - queue[0].arrival;
     total_wait_time += wait_time - queue[0].rt;;
     total_turn_around_time += wait_time;
@@ -572,17 +589,17 @@ void WHS(string fileName){
           
        if (queue[k].age >= queue[k].aging) {
                 
-        if (priorityCheck(queue[0].priority) == true){ //low bound
-           if (queue[0].priority + queue[0].i_o > 49){
-              queue[0].priority = 49;
+        if (priorityCheck(queue[k].priority) == true){ //low bound
+           if (queue[k].priority + 10 > 49){
+              queue[k].priority = 49;
            } else {
-             queue[0].priority = queue[0].priority + 10;
+             queue[k].priority = queue[k].priority + 10;
            }
         } else {
-           if (queue[0].priority + queue[0].i_o > 99){
-              queue[0].priority = 99;            
+           if (queue[k].priority + 10 > 99){
+              queue[k].priority = 99;            
            }else{
-             queue[0].priority = queue[0].priority + 10;
+             queue[k].priority = queue[k].priority + 10;
            }
         }
        }
