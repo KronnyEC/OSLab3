@@ -540,42 +540,23 @@ void WHS(string fileName){
    if(!queue.empty()){
      flagSet =0;
      std::sort(queue.begin(),queue.end(),sortByPriority);
-      
-      /*int ptime = gant_time(queue[0].P_ID, tick);
-      cout << ptime << "\n";
-      if (ptime >= 0 && tick > 0) {
-
-        cout << "Pid\tstart\tstop\truntime\n";
-        cout << curr_pid << "\t" << tick-ptime << "\t" << tick << "\t" << ptime << "\n";
-      }*/
-     //insertSort(queue);
-     //Read(queue);
-    //cout << "Currently working process with P_ID: " <<  queue[0].P_ID << " with remaining time " << queue[0].rt << "\n";
-
-    //check when started:
-    /*
-    if (queue[0].started = false){
-     queue[0].cameIn = tick;
-     cout << tick << "\n";
-     queue[0].started = true;
-    }*/
- 
     if(queue[0].rt<timeQuantum){
-      
       while(queue[0].rt !=0){
-      
-        cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
-      tick++;
-       
+#ifdef DEBUG
+       cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+#endif      
+       tick++;
       queue[0].rt--;
        // cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
       }
     } else { //Process will not finished and will need to demote accordingly 
      
      for(int i=0; i<timeQuantum;i++){
-      
+#ifdef DEBUG      
         cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
-         tick++;
+#endif
+         
+         tiick++;
          queue[0].rt--;
           
         //cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
