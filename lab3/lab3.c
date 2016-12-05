@@ -24,6 +24,8 @@ struct process {
   int boosted;
   int age;
   int last_ran;
+  int base_priority;
+  bool started; 
 };
 
 std::istream& operator>>(std::istream& is, process& s)
@@ -488,7 +490,9 @@ void WHS(string fileName){
     totalTime+=schedule[l].burst;
     schedule[l].rt=schedule[l].burst;
     schedule[l].finished=0;
+    schedule[l].started = false;
     schedule[l].aging =0;
+    schedule[l].base_priority = schedule[l].priority;
   }
 
    /************************** Begin Simulation **********************************/
@@ -509,7 +513,7 @@ void WHS(string fileName){
       //schedule.erase(schedule.begin());
      if (schedule[0].i_o > 0){ //boost the priority 
         schedule[0].boosted = 1;
-        cout << "Process Boosted " << schedule[0].P_ID << " from " << schedule[0].priority << " to ";
+        //cout << "Process Boosted " << schedule[0].P_ID << " from " << schedule[0].priority << " to ";
         if (priorityCheck(schedule[0].priority) == true){ //low bound
            if (schedule[0].priority + schedule[0].i_o > 49){
               schedule[0].priority = 49;
@@ -523,7 +527,7 @@ void WHS(string fileName){
              schedule[0].priority = schedule[0].priority + schedule[0].i_o;
            }
         }
-       cout << schedule[0].priority << "\n";
+       //cout << schedule[0].priority << "\n";
      }
      queue.push_back(schedule[0]);
      schedule.erase(schedule.begin());
@@ -535,23 +539,39 @@ void WHS(string fileName){
    if(!queue.empty()){
      flagSet =0;
      std::sort(queue.begin(),queue.end(),sortByPriority);
-     
+      
+      /*int ptime = gant_time(queue[0].P_ID, tick);
+      cout << ptime << "\n";
+      if (ptime >= 0 && tick > 0) {
+
+        cout << "Pid\tstart\tstop\truntime\n";
+        cout << curr_pid << "\t" << tick-ptime << "\t" << tick << "\t" << ptime << "\n";
+      }*/
      //insertSort(queue);
-     Read(queue);
-    //cout << "Currently working process with P_ID: " <<  queue[0].P_ID << " with remaining time " << queue[0].rt << "\n"; 
+     //Read(queue);
+    //cout << "Currently working process with P_ID: " <<  queue[0].P_ID << " with remaining time " << queue[0].rt << "\n";
+
+    //check when started:
+    /*
+    if (queue[0].started = false){
+     queue[0].cameIn = tick;
+     cout << tick << "\n";
+     queue[0].started = true;
+    }*/
+ 
     if(queue[0].rt<timeQuantum){
       
       while(queue[0].rt !=0){
-      queue[0].rt--;
       tick++;
-      
+       
+      queue[0].rt--;
         //cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
       }
     } else { //Process will not finished and will need to demote accordingly 
      
      for(int i=0; i<timeQuantum;i++){
-        queue[0].rt--;
-        tick++;
+         tick++;
+         queue[0].rt--;
           
         //cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
      }
@@ -560,16 +580,19 @@ void WHS(string fileName){
    	if (queue[0].priority < (queue[0].priority - timeQuantum)){
           queue[0].priority = queue[0].priority - timeQuantum;
           //cout << " Priority for " << queue[0].P_ID << " changed to " << queue[0].priority << "\n";
-     	}
+     	} else {
+          queue[0].priority = queue[0].base_priority; // change it back to its base priority. 
+        }
         //Set the aging counter for the process; 
-        queue[0].aging = tick+1 + aging;
+        queue[0].aging = tick + aging;
+        queue[0].last_ran = tick;
      //send back to the queue
      queue.push_back(queue[0]);
      queue.erase(queue.begin());    
     } 
    
    if(queue[0].rt <= 0){
-    cout << "Ended at " << tick << ": process " << queue[0].P_ID << "\n"; 
+    cout << " P ==> " << queue[0].P_ID << " | start : " << " | end : " << tick << "\n"; 
     int wait_time = tick+1 - queue[0].arrival;
     total_wait_time += wait_time - queue[0].rt;;
     total_turn_around_time += wait_time;
@@ -583,27 +606,34 @@ void WHS(string fileName){
    tick++;
 
   }
-  //aging 
-  for(int k=0; k<queue.size(); k++) {
-        queue[k].age++;
+  //aging
+  //
+   
+      bool done_aging = false;
+      int k = 0;
+      while (!done_aging && k<queue.size()) {
+        if (queue[k].last_ran-tick >= aging) {
+          queue[k].last_ran = tick;
           
-       if (queue[k].age >= queue[k].aging) {
-                
-        if (priorityCheck(queue[k].priority) == true){ //low bound
-           if (queue[k].priority + 10 > 49){
-              queue[k].priority = 49;
+          if (priorityCheck(queue[k].priority) == true){ //low bound
+            if (queue[k].priority + 10 > 49){
+               //cout << "Queu age " <<  queue[k].aging << " aging counter " << queue[k].age << " for PID " << queue[k].P_ID << "\n";  
+               queue[k].priority = 49;
            } else {
              queue[k].priority = queue[k].priority + 10;
            }
-        } else {
+         } else {
            if (queue[k].priority + 10 > 99){
-              queue[k].priority = 99;            
+              queue[k].priority = 99; 
            }else{
              queue[k].priority = queue[k].priority + 10;
            }
+         }
+       	} else {
+          done_aging = true;
         }
-       }
-    }
+        k++;
+      }
 
   if (numProcess == 0){
    running = 0;
