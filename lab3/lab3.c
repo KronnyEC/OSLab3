@@ -497,7 +497,7 @@ void WHS(string fileName){
   }
 
    /************************** Begin Simulation **********************************/
-  std::deque<process> queue;
+  std::vector<process> queue;
   
   int total_wait_time = 0;
   int total_turn_around_time = 0;
@@ -509,7 +509,7 @@ void WHS(string fileName){
   int flagSet = 1;
   //Read(schedule);
   while (running){
-     while(!schedule.empty() && schedule[0].arrival <= tick){
+     while(schedule.size() > 1 && schedule[0].arrival <= tick){
      //queue.push_back(schedule[0]);
       //schedule.erase(schedule.begin());
      if (schedule[0].i_o > 0){ //boost the priority 
@@ -530,7 +530,7 @@ void WHS(string fileName){
         }
        //cout << schedule[0].priority << "\n";
      }
-     queue.push_front(schedule[0]);
+     queue.insert(queue.begin(), schedule[0]);
      schedule.erase(schedule.begin());
      //Read(queue);
    }
@@ -563,14 +563,18 @@ void WHS(string fileName){
     if(queue[0].rt<timeQuantum){
       
       while(queue[0].rt !=0){
+      
+        cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
       tick++;
        
       queue[0].rt--;
-        //cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+       // cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
       }
     } else { //Process will not finished and will need to demote accordingly 
      
      for(int i=0; i<timeQuantum;i++){
+      
+        cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
          tick++;
          queue[0].rt--;
           
@@ -588,12 +592,12 @@ void WHS(string fileName){
         queue[0].aging = tick + aging;
         queue[0].last_ran = tick;
      //send back to the queue
-     queue.push_front(queue[0]);
-     queue.erase(queue.begin());    
+    // queue.push_front(queue[0]);
+     //queue.erase(queue.begin());    
     } 
    
    if(queue[0].rt <= 0){
-    cout << " P ==> " << queue[0].P_ID << " | start : " << " | end : " << tick << "\n"; 
+    //cout << " P ==> " << queue[0].P_ID << " | start : " << " | end : " << tick << "\n"; 
     int wait_time = tick+1 - queue[0].arrival;
     total_wait_time += wait_time - queue[0].rt;;
     total_turn_around_time += wait_time;
