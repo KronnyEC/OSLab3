@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <deque>
 using namespace std;
 
 struct process {
@@ -496,7 +497,7 @@ void WHS(string fileName){
   }
 
    /************************** Begin Simulation **********************************/
-  std::vector<process> queue;
+  std::deque<process> queue;
   
   int total_wait_time = 0;
   int total_turn_around_time = 0;
@@ -529,7 +530,7 @@ void WHS(string fileName){
         }
        //cout << schedule[0].priority << "\n";
      }
-     queue.push_back(schedule[0]);
+     queue.push_front(schedule[0]);
      schedule.erase(schedule.begin());
      //Read(queue);
    }
@@ -587,7 +588,7 @@ void WHS(string fileName){
         queue[0].aging = tick + aging;
         queue[0].last_ran = tick;
      //send back to the queue
-     queue.push_back(queue[0]);
+     queue.push_front(queue[0]);
      queue.erase(queue.begin());    
     } 
    
