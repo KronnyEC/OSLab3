@@ -93,24 +93,24 @@ bool sortByArrivalDeadline(process const &lhs, process const &rhs){
 
 bool priorityCheck(int x){
   if ( x >= 0 && x <=49){
-     return true;   
+    return true;   
   } else {
-     return false;
+    return false;
   }
 
 
 }
 /*
-template< typename T >
-typename std::vector<T>::iterator 
+   template< typename T >
+   typename std::vector<T>::iterator 
    insert_sorted( std::vector<T> & vec, T const& item )
-{
-    return vec.insert
-        ( 
-            std::upper_bound( vec.begin(), vec.end(), item ),
-            item 
-        );
-}*/
+   {
+   return vec.insert
+   ( 
+   std::upper_bound( vec.begin(), vec.end(), item ),
+   item 
+   );
+   }*/
 
 
 bool sortByBurst(process lhs, process rhs){return lhs.burst < rhs.burst; }
@@ -130,11 +130,11 @@ bool lessThanZero(process s){
 }
 
 bool lessPriority(process s){
- if (s.priority < 0 || s.priority > 99 || s.arrival < 0 || s.burst < 0){
+  if (s.priority < 0 || s.priority > 99 || s.arrival < 0 || s.burst < 0){
     return true;
- }  else {
+  }  else {
     return false;
- }
+  }
 }
 
 bool lessThanZeroDeadline(process s){
@@ -152,9 +152,10 @@ int curr_pid;
 
 int gant_time(int PID, int tick) {
   if (PID != curr_pid) {
+    curr_pid = PID;
     int t1 = start_time;
     start_time = tick;
-    return t1 - tick;
+    return tick - t1;
   } else {
     return -1;
   }
@@ -195,7 +196,9 @@ void MFQS(string fileName){
   /************************** Begin Simulation **********************************/
   //Read(schedule);
   schedule.erase(schedule.end()-1);
+#ifdef DEBUG
   cout << "\n-------------------------------\n";
+#endif
   while (running){
     i = 0;
     //cout << "Tick: " << tick << "\n";
@@ -209,17 +212,16 @@ void MFQS(string fileName){
     while (i < nqueues-1 && queue[i].empty()) {
       i++;
     }
-    //cout << "Running queue: " << i << " Process: " << queue[i][0].arrival << " With " << queue[i][0].burst << " remaining\n";
 
     if (!queue[i].empty()) {
       // If last queue, run FCFS
-      //Manny - make the output pretty! [also time_quantum needs to double]
+#ifdef DEBUG
       int ptime = gant_time(queue[i][0].P_ID, tick);
       if (ptime >= 0 && tick > 0) {
-
-        cout << "Pid\tstart\tstop\truntime\n";
-        cout << curr_pid << "\t" << tick-ptime << "\t" << tick << "\t" << ptime << "\n";
+        cout << "Pid\tstart\tstop\truntime\tin queue\n";
+        cout << curr_pid << "\t" << tick-ptime << "\t" << tick << "\t" << ptime << "\t" << i << "\n";
       }
+#endif
       if (i == nqueues-1) {
         while (queue[i][0].burst > 0) {
           tick++;
@@ -227,9 +229,10 @@ void MFQS(string fileName){
           queue[i][0].last_ran = tick;
           queue[i][0].rt++;
         }
-        //cout << "Process: " << queue[i][0].P_ID << "\twith burst " << queue[i][0].rt << "\tFinished at " << tick << "\tin queue " << i+1 << "\n";
+#ifdef DEBUG
         cout << "Finished\n";
         cout << "--------------------------------\n";
+#endif
         queue[i].erase(queue[i].begin());
         int wait_time = tick - queue[i][0].arrival;
         total_wait_time += wait_time - queue[i][0].rt;;
@@ -238,37 +241,36 @@ void MFQS(string fileName){
       } else {
         bool finished = false;
         int time = 0;
-        while (!finished && time < base_time_quantum) {
+        while (!finished && time < (base_time_quantum + base_time_quantum * i)) {
           queue[i][0].burst--;
           queue[i][0].last_ran = tick;
           queue[i][0].rt++;
           if (queue[i][0].burst <= 0) {
-            //cout << "Process: " << queue[i][0].P_ID << "\twith burst " << queue[i][0].rt << "\tFinished at " << tick << "\tin queue " << i+1 << "\n";
+#ifdef DEBUG
             cout << "Finished\n";
-          cout << "--------------------------------\n";
+            cout << "--------------------------------\n";
+#endif
             int wait_time = tick - queue[i][0].arrival;
             total_wait_time += wait_time - queue[i][0].rt;;
             total_turn_around_time += wait_time;
             queue[i].erase(queue[i].begin());
             finished = true;
-          } else {
-            //cout << "Ran queue: " << i << " Process: " << queue[i][0].P_ID << " With " << queue[i][0].burst << " remaining\n";
           }
           tick++;
           time++;
         }
         if(!finished) {
           //send to lower queue
-          //cout << "QUEUED\n";
           int next_queue = i+1;
           if (next_queue > nqueues-1) {
             next_queue = nqueues-1;
           }
+#ifdef DEBUG
           if (tick > 0) {
             cout << "Sent to queue " << next_queue << "\n";
           }
           cout << "--------------------------------\n";
-          //cout << "Process:\t" << queue[i][0].P_ID << "\tPushed to\t" << next_queue << "\n";
+#endif
           queue[next_queue].push_back(queue[i][0]);
           queue[i].erase(queue[i].begin());
         }
@@ -294,24 +296,6 @@ void MFQS(string fileName){
       }
       l++;
     }
-    /*
-    while (l < nqueues-1 && !queue[l].empty()) {
-      for(int k=0; k<queue[l].size(); k++) {
-        cout << i << " and " << l << "\n";
-        //cout << "queue[" << l << "][" << k << "] == " << queue[l][k] << "\n";
-        queue[l][k].age++;
-        if (queue[l][k].age >= queue[l][k].aging) {
-          int above_queue = l-1;
-          if (above_queue > 0 ) {
-            queue[above_queue].push_back(queue[l][k]);
-            queue[l].erase(queue[l].begin()+k);
-          }
-          queue[l][k].age = 0;
-        }
-      }
-      l++;
-    }
-*/
     // are we done?
     running = false;
     if (!schedule.empty()) {
@@ -324,11 +308,6 @@ void MFQS(string fileName){
       }
     }
   }
-  // print Gant into for final process
-  cout << "Pid\tstart\tstop\nqueue\n";
-  cout << curr_pid << "\t" << start_time << "\t" << tick << "\n" << i;
-
-  float avwt = 0;
   float avtt = 0;
   avwt = total_wait_time/totalProcess;
   avtt = total_turn_around_time/totalProcess;
@@ -387,6 +366,7 @@ void RTS(string fileName){
     }   
   }
 
+  //Manny
   std::vector<process> queue;
   int total_wait_time = 0;
   int total_turn_around_time = 0;
@@ -394,9 +374,7 @@ void RTS(string fileName){
   int running = 1;
   int completed_processes = 0;
 #ifdef DEBUG
-  //cout << "\nSchedule:\n";
-  //Read(schedule);
-  //cout << "\n";
+  cout << "--------------------------------\n";
 #endif
   while(running) {
     // check for new processes
@@ -408,21 +386,24 @@ void RTS(string fileName){
     }
     // do work
     if (!queue.empty()) {
-      cout << "\n";
-      Read(queue);
-      cout << "\n";
-      cout << "Time: " << tick << " Process: " << queue[0].P_ID << "\n";
+#ifdef DEBUG
+      int ptime = gant_time(queue[0].P_ID, tick);
+      if (ptime >= 0 && tick > 0) {
+        cout << "Pid\tstart\tstop\truntime\n";
+        cout << curr_pid << "\t" << tick-ptime << "\t" << tick << "\t" << ptime << "\n";
+        cout << "--------------------------------\n";
+      }
+#endif
       if (queue[0].burst + tick > queue[0].deadline) {
         if (hard_or_soft == 2) {
-          cout << "\033[1;31mPROCESS " << queue[0].P_ID << " FAILED: Removing Process\033[0m\n";
 #ifdef DEBUG
-          cout << "\033[1;31mPID:\tARR\tR_BST:\tDL:\tCURR\033[0m\n";
-          cout << "\033[1;31m" << queue[0].P_ID << "\t" <<queue[0].arrival << "\t" << queue[0].burst << "\t" << queue[0].deadline << "\t" << tick << "\033[0m\n";
+          cout << "\033[1;31mPROCESS " << curr_pid <<" FAILED: Removing Process\033[0m\n";
+          cout << "--------------------------------\n";
 #endif
           queue.erase(queue.begin());
           numProcess--;
         } else {
-          cout << "\033[1;31mPROCESS " << queue[0].P_ID << " FAILED: ABORTING SCHEDULAR\033[0m\n";
+          cout << "\033[1;31mPROCESS " << queue[0].P_ID << " FAILED: ABORTING SCHEDULER\033[0m\n";
           return;
         }
       } else {
@@ -433,10 +414,6 @@ void RTS(string fileName){
           total_wait_time += wait_time - queue[0].rt;;
           total_turn_around_time += wait_time;
           completed_processes++;
-#ifdef DEBUG
-          cout << "Process " << queue[0].P_ID << " ended at " << tick+1 << "\n";
-          cout << "cur: " << tick+1 << "\tarr: " << queue[0].arrival << "\trt: " << queue[0].rt << " total wait " << total_wait_time << "\n";
-#endif
           queue.erase(queue.begin());
           numProcess--;
         }
@@ -463,8 +440,8 @@ void WHS(string fileName){
   cin >> timeQuantum;
 
   /*cout << "Please enter the aging amoung" << "\n";
-  int aging;
-  cin >> aging*/ 
+    int aging;
+    cin >> aging*/ 
 
   /************************** Initialize ****************************************/
 
@@ -479,7 +456,7 @@ void WHS(string fileName){
 
   //Remove all with burst, arrivals, and deadlines less than 0
   schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessPriority),schedule.end()); 
-  
+
   int numProcess = schedule.size()-1;
   int totalProcess = numProcess;
   cout << "Number of processes " << numProcess << "\n";
@@ -496,9 +473,9 @@ void WHS(string fileName){
     schedule[l].base_priority = schedule[l].priority;
   }
 
-   /************************** Begin Simulation **********************************/
+  /************************** Begin Simulation **********************************/
   std::vector<process> queue;
-  
+
   int total_wait_time = 0;
   int total_turn_around_time = 0;
   int tick = 0;
@@ -509,122 +486,122 @@ void WHS(string fileName){
   int flagSet = 1;
   //Read(schedule);
   while (running){
-     while(schedule.size() > 1 && schedule[0].arrival <= tick){
-     //queue.push_back(schedule[0]);
+    while(schedule.size() > 1 && schedule[0].arrival <= tick){
+      //queue.push_back(schedule[0]);
       //schedule.erase(schedule.begin());
-     if (schedule[0].i_o > 0){ //boost the priority 
+      if (schedule[0].i_o > 0){ //boost the priority 
         schedule[0].boosted = 1;
         //cout << "Process Boosted " << schedule[0].P_ID << " from " << schedule[0].priority << " to ";
         if (priorityCheck(schedule[0].priority) == true){ //low bound
-           if (schedule[0].priority + schedule[0].i_o > 49){
-              schedule[0].priority = 49;
-           } else {
-             schedule[0].priority = schedule[0].priority + schedule[0].i_o;
-           }
+          if (schedule[0].priority + schedule[0].i_o > 49){
+            schedule[0].priority = 49;
+          } else {
+            schedule[0].priority = schedule[0].priority + schedule[0].i_o;
+          }
         } else {
-           if (schedule[0].priority + schedule[0].i_o > 99){
-              schedule[0].priority = 99;            
-           }else{
-             schedule[0].priority = schedule[0].priority + schedule[0].i_o;
-           }
+          if (schedule[0].priority + schedule[0].i_o > 99){
+            schedule[0].priority = 99;            
+          }else{
+            schedule[0].priority = schedule[0].priority + schedule[0].i_o;
+          }
         }
-       //cout << schedule[0].priority << "\n";
-     }
-     queue.insert(queue.begin(), schedule[0]);
-     schedule.erase(schedule.begin());
-     //Read(queue);
-   }
-
-   //all processes have arrived, sort time now
-
-   if(!queue.empty()){
-     flagSet =0;
-     std::sort(queue.begin(),queue.end(),sortByPriority);
-    if(queue[0].rt<timeQuantum){
-      while(queue[0].rt !=0){
-#ifdef DEBUG
-       cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
-#endif      
-       tick++;
-      queue[0].rt--;
-       // cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+        //cout << schedule[0].priority << "\n";
       }
-    } else { //Process will not finished and will need to demote accordingly 
-     
-     for(int i=0; i<timeQuantum;i++){
+      queue.insert(queue.begin(), schedule[0]);
+      schedule.erase(schedule.begin());
+      //Read(queue);
+    }
+
+    //all processes have arrived, sort time now
+
+    if(!queue.empty()){
+      flagSet =0;
+      std::sort(queue.begin(),queue.end(),sortByPriority);
+      if(queue[0].rt<timeQuantum){
+        while(queue[0].rt !=0){
+#ifdef DEBUG
+          cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+#endif      
+          tick++;
+          queue[0].rt--;
+          // cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+        }
+      } else { //Process will not finished and will need to demote accordingly 
+
+        for(int i=0; i<timeQuantum;i++){
 #ifdef DEBUG      
-        cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+          cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
 #endif
-         
-         tiick++;
-         queue[0].rt--;
-          
-        //cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
-     }
-     
-     //Demote the process based on how long it took. 
-   	if (queue[0].priority < (queue[0].priority - timeQuantum)){
+
+          tick++;
+          queue[0].rt--;
+
+          //cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+        }
+
+        //Demote the process based on how long it took. 
+        if (queue[0].priority < (queue[0].priority - timeQuantum)){
           queue[0].priority = queue[0].priority - timeQuantum;
           //cout << " Priority for " << queue[0].P_ID << " changed to " << queue[0].priority << "\n";
-     	} else {
+        } else {
           queue[0].priority = queue[0].base_priority; // change it back to its base priority. 
         }
         //Set the aging counter for the process; 
         queue[0].aging = tick + aging;
         queue[0].last_ran = tick;
-     //send back to the queue
-    // queue.push_front(queue[0]);
-     //queue.erase(queue.begin());    
-    } 
-   
-   if(queue[0].rt <= 0){
-    //cout << " P ==> " << queue[0].P_ID << " | start : " << " | end : " << tick << "\n"; 
-    int wait_time = tick+1 - queue[0].arrival;
-    total_wait_time += wait_time - queue[0].rt;;
-    total_turn_around_time += wait_time;
-    completed_processes++;
-    queue.erase(queue.begin());
-    numProcess--;
-    
-   }
-  } 
-  if (flagSet == 1){
-   tick++;
+        //send back to the queue
+        // queue.push_front(queue[0]);
+        //queue.erase(queue.begin());    
+      } 
 
-  }
-  //aging
-  //
-   
-      bool done_aging = false;
-      int k = 0;
-      while (!done_aging && k<queue.size()) {
-        if (queue[k].last_ran-tick >= aging) {
-          queue[k].last_ran = tick;
-          
-          if (priorityCheck(queue[k].priority) == true){ //low bound
-            if (queue[k].priority + 10 > 49){
-               //cout << "Queu age " <<  queue[k].aging << " aging counter " << queue[k].age << " for PID " << queue[k].P_ID << "\n";  
-               queue[k].priority = 49;
-           } else {
-             queue[k].priority = queue[k].priority + 10;
-           }
-         } else {
-           if (queue[k].priority + 10 > 99){
-              queue[k].priority = 99; 
-           }else{
-             queue[k].priority = queue[k].priority + 10;
-           }
-         }
-       	} else {
-          done_aging = true;
-        }
-        k++;
+      if(queue[0].rt <= 0){
+        //cout << " P ==> " << queue[0].P_ID << " | start : " << " | end : " << tick << "\n"; 
+        int wait_time = tick+1 - queue[0].arrival;
+        total_wait_time += wait_time - queue[0].rt;;
+        total_turn_around_time += wait_time;
+        completed_processes++;
+        queue.erase(queue.begin());
+        numProcess--;
+
       }
+    } 
+    if (flagSet == 1){
+      tick++;
 
-  if (numProcess == 0){
-   running = 0;
+    }
+    //aging
+    //
+
+    bool done_aging = false;
+    int k = 0;
+    while (!done_aging && k<queue.size()) {
+      if (queue[k].last_ran-tick >= aging) {
+        queue[k].last_ran = tick;
+
+        if (priorityCheck(queue[k].priority) == true){ //low bound
+          if (queue[k].priority + 10 > 49){
+            //cout << "Queu age " <<  queue[k].aging << " aging counter " << queue[k].age << " for PID " << queue[k].P_ID << "\n";  
+            queue[k].priority = 49;
+          } else {
+            queue[k].priority = queue[k].priority + 10;
+          }
+        } else {
+          if (queue[k].priority + 10 > 99){
+            queue[k].priority = 99; 
+          }else{
+            queue[k].priority = queue[k].priority + 10;
+          }
+        }
+      } else {
+        done_aging = true;
+      }
+      k++;
+    }
+
+    if (numProcess == 0){
+      running = 0;
+    }
   }
-}
 
   float avwt = 0;
   float avtt = 0;
@@ -642,7 +619,7 @@ int main(){
 
   //User Interface for processs 
   cout << "Please enter the number to implement a scheduling algorithm \n";
-  cout << "1: Multi-level Feedback Queue Scheduler (MFQS\n";
+  cout << "1: Multi-level Feedback Queue Scheduler (MFQS)\n";
   cout << "2: Real-Time Scheduler (RTS)\n";
   cout << "3: Windows Hybrid Scheduler (WHS)\n";
   cin >> i;
