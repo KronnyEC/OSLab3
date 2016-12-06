@@ -454,15 +454,14 @@ void WHS(string fileName){
   sort(schedule.begin(), schedule.end()-1, sortByArrival);
   //Read(schedule);
 
-  //Need to account for both soft and hard RT environments.
 
   //Remove all with burst, arrivals, and deadlines less than 0
   schedule.erase(std::remove_if(schedule.begin(),schedule.end(),lessPriority),schedule.end()); 
 
   int numProcess = schedule.size()-1;
   int totalProcess = numProcess;
-  cout << "Number of processes " << numProcess << "\n";
-  //Setup the total amount of time based valid Burst and Arrived Times 
+  
+//Setup the total amount of time based valid Burst and Arrived Times 
   int totalTime = 0; 
   //set values at wt,rt, and finished to 0
   for(int l=0; l < schedule.size(); l++){
@@ -522,22 +521,20 @@ void WHS(string fileName){
       if(queue[0].rt<timeQuantum){
         while(queue[0].rt !=0){
 #ifdef DEBUG
-          cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+          cout << "Process (" << queue[0].P_ID << ") at clock-tick |" << tick << "|\n";
 #endif      
           tick++;
           queue[0].rt--;
-          // cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
         }
       } else { //Process will not finished and will need to demote accordingly 
 
         for(int i=0; i<timeQuantum;i++){
 #ifdef DEBUG      
-          cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
+          cout << "Process (" << queue[0].P_ID << ") at clock-tick |" << tick << "|\n";
 #endif
 
           tick++;
           queue[0].rt--;
-
           //cout << "Process " << queue[0].P_ID << " rt = " << queue[0].rt << " tick = " << tick << "\n";
         }
 
@@ -551,29 +548,22 @@ void WHS(string fileName){
         //Set the aging counter for the process; 
         queue[0].aging = tick + aging;
         queue[0].last_ran = tick;
-        //send back to the queue
-        // queue.push_front(queue[0]);
-        //queue.erase(queue.begin());    
       } 
 
       if(queue[0].rt <= 0){
-        //cout << " P ==> " << queue[0].P_ID << " | start : " << " | end : " << tick << "\n"; 
         int wait_time = tick+1 - queue[0].arrival;
         total_wait_time += wait_time - queue[0].rt;;
         total_turn_around_time += wait_time;
         completed_processes++;
         queue.erase(queue.begin());
         numProcess--;
-
       }
     } 
     if (flagSet == 1){
       tick++;
-
     }
-    //aging
-    //
 
+    //aging
     bool done_aging = false;
     int k = 0;
     while (!done_aging && k<queue.size()) {
@@ -582,7 +572,6 @@ void WHS(string fileName){
 
         if (priorityCheck(queue[k].priority) == true){ //low bound
           if (queue[k].priority + 10 > 49){
-            //cout << "Queu age " <<  queue[k].aging << " aging counter " << queue[k].age << " for PID " << queue[k].P_ID << "\n";  
             queue[k].priority = 49;
           } else {
             queue[k].priority = queue[k].priority + 10;
