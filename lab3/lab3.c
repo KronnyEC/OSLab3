@@ -308,6 +308,8 @@ void MFQS(string fileName){
       }
     }
   }
+
+  float avwt = 0;
   float avtt = 0;
   avwt = total_wait_time/totalProcess;
   avtt = total_turn_around_time/totalProcess;
